@@ -120,7 +120,7 @@ export function FeedbackModal({ isOpen, onClose, project, onFeedbackSubmitted }:
                   className="absolute top-2 right-2"
                   onClick={() => setUploadedImage(null)}
                 >
-                  <X className="w-4 h-4" />
+                  <X className="bg-white hover:bg-white w-4 h-4" />
                 </Button>
               </div>
             ) : (
