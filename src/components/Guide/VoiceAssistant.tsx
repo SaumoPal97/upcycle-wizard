@@ -305,7 +305,7 @@ export function VoiceAssistant({ project, currentStep }: VoiceAssistantProps) {
             }`}
           >
             {isListening ? (
-              <MicOff className="w-8 h-8 text-white" />
+              <MicOff className="bg-white w-8 h-8 text-white" />
             ) : (
               <Mic className="w-8 h-8 text-white" />
             )}
