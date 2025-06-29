@@ -10,7 +10,7 @@ const toolOptions = [
   { id: 'drill', label: 'Drill', emoji: '🔧' },
   { id: 'paintbrush', label: 'Paintbrush', emoji: '🖌️' },
   { id: 'sandpaper', label: 'Sandpaper', emoji: '📄' },
-  { id: 'screws', label: 'Screws/Fasteners', emoji: '🔩' },
+  { id: 'screws', label: 'Screws', emoji: '🔩' },
   { id: 'glue', label: 'Wood Glue', emoji: '🧲' },
   { id: 'saw', label: 'Saw', emoji: '🪚' },
   { id: 'screwdriver', label: 'Screwdriver', emoji: '🪛' },
