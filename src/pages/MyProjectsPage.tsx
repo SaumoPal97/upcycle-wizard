@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Search, Plus, Eye, Copy, Trash2, Edit } from 'lucide-react'
+import { ArrowLeft, Search, Plus, Eye, EyeOff, Trash2, Edit } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import { Database } from '@/types/database'
+import { toast } from 'sonner'
 
 type Project = Database['public']['Tables']['projects']['Row']
 
@@ -17,6 +18,7 @@ export function MyProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
+  const [updatingProjects, setUpdatingProjects] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     if (user) {
@@ -38,8 +40,85 @@ export function MyProjectsPage() {
       setProjects(data || [])
     } catch (error) {
       console.error('Error fetching projects:', error)
+      toast.error('Failed to load projects')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const toggleProjectPublicStatus = async (projectId: string, currentPublicStatus: boolean) => {
+    if (updatingProjects.has(projectId)) return
+
+    setUpdatingProjects(prev => new Set(prev).add(projectId))
+
+    try {
+      const { error } = await supabase
+        .from('projects')
+        .update({ public: !currentPublicStatus })
+        .eq('id', projectId)
+        .eq('user_id', user?.id) // Extra security check
+
+      if (error) throw error
+
+      // Update local state
+      setProjects(prev => 
+        prev.map(project => 
+          project.id === projectId 
+            ? { ...project, public: !currentPublicStatus }
+            : project
+        )
+      )
+
+      toast.success(
+        !currentPublicStatus 
+          ? 'Project is now public and visible to everyone' 
+          : 'Project is now private and only visible to you'
+      )
+    } catch (error) {
+      console.error('Error updating project visibility:', error)
+      toast.error('Failed to update project visibility')
+    } finally {
+      setUpdatingProjects(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(projectId)
+        return newSet
+      })
+    }
+  }
+
+  const deleteProject = async (projectId: string, projectTitle: string) => {
+    const confirmed = window.confirm(
+      `Are you sure you want to delete "${projectTitle}"? This action cannot be undone.`
+    )
+
+    if (!confirmed) return
+
+    if (updatingProjects.has(projectId)) return
+
+    setUpdatingProjects(prev => new Set(prev).add(projectId))
+
+    try {
+      const { error } = await supabase
+        .from('projects')
+        .delete()
+        .eq('id', projectId)
+        .eq('user_id', user?.id) // Extra security check
+
+      if (error) throw error
+
+      // Remove from local state
+      setProjects(prev => prev.filter(project => project.id !== projectId))
+
+      toast.success('Project deleted successfully')
+    } catch (error) {
+      console.error('Error deleting project:', error)
+      toast.error('Failed to delete project')
+    } finally {
+      setUpdatingProjects(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(projectId)
+        return newSet
+      })
     }
   }
 
@@ -77,7 +156,8 @@ export function MyProjectsPage() {
     } else {
       return (
         <div className="flex items-center space-x-1 text-gray-500 text-sm">
-          <span>🔒 Private</span>
+          <EyeOff className="w-4 h-4" />
+          <span>Private</span>
         </div>
       )
     }
@@ -236,22 +316,45 @@ export function MyProjectsPage() {
                         size="sm"
                         onClick={() => navigate(`/project/${project.id}`)}
                         className="bg-white border-emerald-600 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
+                        title="View project"
                       >
                         <Eye className="w-4 h-4" />
                       </Button>
+                      
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="bg-white border-emerald-600 text-gray-600 hover:text-gray-700 hover:bg-gray-50"
+                        onClick={() => toggleProjectPublicStatus(project.id, project.public)}
+                        disabled={updatingProjects.has(project.id)}
+                        className={`bg-white border-emerald-600 hover:bg-emerald-50 ${
+                          project.public 
+                            ? 'text-emerald-600 hover:text-emerald-700' 
+                            : 'text-gray-600 hover:text-gray-700'
+                        }`}
+                        title={project.public ? 'Make private' : 'Make public'}
                       >
-                        <Copy className="w-4 h-4" />
+                        {updatingProjects.has(project.id) ? (
+                          <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                        ) : project.public ? (
+                          <EyeOff className="w-4 h-4" />
+                        ) : (
+                          <Eye className="w-4 h-4" />
+                        )}
                       </Button>
+                      
                       <Button
                         variant="ghost"
                         size="sm"
+                        onClick={() => deleteProject(project.id, project.title)}
+                        disabled={updatingProjects.has(project.id)}
                         className="bg-white border-emerald-600 text-red-600 hover:text-red-700 hover:bg-red-50"
+                        title="Delete project"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        {updatingProjects.has(project.id) ? (
+                          <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <Trash2 className="w-4 h-4" />
+                        )}
                       </Button>
                     </div>
                   </div>
