@@ -158,7 +158,7 @@ export function FeedbackModal({ isOpen, onClose, project, onFeedbackSubmitted }:
                 <button
                   key={star}
                   onClick={() => setRating(star)}
-                  className={`p-1 transition-colors bg-transparent hover:bg-transparent ${
+                  className={`border-transparent hover:border-transparent p-1 transition-colors bg-transparent hover:bg-transparent ${
                     star <= rating ? 'text-yellow-400' : 'text-gray-300'
                   }`}
                 >
