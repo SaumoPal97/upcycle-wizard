@@ -31,10 +31,9 @@ export function useLikeProject(projectId: string, initialLikesCount: number = 0)
         .select('id')
         .eq('user_id', user.id)
         .eq('project_id', projectId)
-        .single()
+        .maybeSingle()
 
-      if (error && error.code !== 'PGRST116') {
-        // PGRST116 is "not found" error, which is expected when user hasn't liked
+      if (error) {
         console.error('Error checking like status:', error)
         return
       }
