@@ -89,7 +89,7 @@ export function HeroSection() {
               <img
                 src={sponsor.logo}
                 alt={sponsor.name}
-                className="w-8 h-8 hover:scale-110 transition-transform duration-200"
+                className="w-12 h-12 hover:scale-110 transition-transform duration-200"
               />
             </a>
           ))}
@@ -98,13 +98,13 @@ export function HeroSection() {
       
       <div className="w-full px-4 text-center relative">
         <div className="max-w-4xl mx-auto">
-          {/* Upcycle Wizard brand centered above AI-powered text */}
-          <div className="text-center mb-12">
-            <div className="flex items-center justify-center space-x-2">
-              <div className="w-10 h-10 bg-emerald-600 rounded-full flex items-center justify-center">
-                <Recycle className="w-6 h-6 text-white" />
+          {/* Upcycle Wizard brand centered above AI-powered text - Made bigger */}
+          <div className="text-center mb-6">
+            <div className="flex items-center justify-center space-x-3">
+              <div className="w-16 h-16 bg-emerald-600 rounded-full flex items-center justify-center">
+                <Recycle className="w-10 h-10 text-white" />
               </div>
-              <span className="font-bold text-2xl text-emerald-700">Upcycle Wizard</span>
+              <span className="font-bold text-4xl text-emerald-700">Upcycle Wizard</span>
             </div>
           </div>
 
