@@ -249,7 +249,7 @@ export function MyProjectsPage() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="text-gray-600 hover:text-gray-700 hover:bg-gray-50"
+                        className="bg-white border-emerald-600 text-gray-600 hover:text-gray-700 hover:bg-gray-50"
                       >
                         <Copy className="w-4 h-4" />
                       </Button>
