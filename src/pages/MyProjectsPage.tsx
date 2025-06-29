@@ -140,16 +140,6 @@ export function MyProjectsPage() {
               </Button>
               
               <h1 className="text-3xl font-bold text-gray-900">My Projects</h1>
-              
-              <nav className="flex items-center space-x-6">
-                <Link to="/" className="text-gray-600 hover:text-emerald-600 transition-colors">
-                  Home
-                </Link>
-                <Link to="/explore" className="text-gray-600 hover:text-emerald-600 transition-colors">
-                  Explore
-                </Link>
-                <span className="text-emerald-600 font-medium">My Projects</span>
-              </nav>
             </div>
             
             <Button 
