@@ -242,7 +242,7 @@ export function MyProjectsPage() {
                         variant="ghost"
                         size="sm"
                         onClick={() => navigate(`/project/${project.id}`)}
-                        className="bg-white text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
+                        className="bg-white border-emerald-600 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
                       >
                         <Eye className="w-4 h-4" />
                       </Button>
