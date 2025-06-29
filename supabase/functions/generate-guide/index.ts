@@ -476,52 +476,60 @@ Guidelines:
   }
 }
 
-async function callImagenAPI(prompt: string, modelId: string, apiKey: string): Promise<Uint8Array> {
-  console.log(`🎨 Calling Imagen API with model: ${modelId}`)
+async function callGeminiImageGenerationAPI(prompt: string, apiKey: string): Promise<Uint8Array> {
+  console.log('🎨 Calling Gemini 2.0 Flash Preview Image Generation API')
   
-  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateImage?key=${apiKey}`, {
+  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-preview-image-generation:generateContent?key=${apiKey}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      prompt: {
-        text: prompt
-      },
+      contents: [{
+        parts: [{
+          text: prompt
+        }]
+      }],
       generationConfig: {
-        aspectRatio: "1:1",
-        negativePrompt: "blurry, low quality, distorted, text, watermark",
-        numberOfImages: 1
+        responseModalities: ["TEXT", "IMAGE"]
       }
     })
   })
 
   if (!response.ok) {
     const errorText = await response.text()
-    console.error(`❌ Imagen API error (${modelId}):`, {
+    console.error('❌ Gemini Image Generation API error:', {
       status: response.status,
       statusText: response.statusText,
       body: errorText
     })
     
     if (response.status === 429) {
-      throw new Error(`Rate limit exceeded for ${modelId}`)
+      throw new Error('Rate limit exceeded for Gemini Image Generation')
     } else if (response.status === 401 || response.status === 403) {
-      throw new Error(`Authentication failed for ${modelId}`)
+      throw new Error('Authentication failed for Gemini Image Generation')
     } else {
-      throw new Error(`Imagen API error for ${modelId}: ${response.status} ${response.statusText}`)
+      throw new Error(`Gemini Image Generation API error: ${response.status} ${response.statusText}`)
     }
   }
 
   const data = await response.json()
   
-  if (!data.generatedImages || !data.generatedImages[0] || !data.generatedImages[0].bytesBase64Encoded) {
-    console.error('❌ Invalid Imagen API response structure:', data)
-    throw new Error(`Invalid response format from Imagen API (${modelId})`)
+  if (!data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts) {
+    console.error('❌ Invalid Gemini Image Generation API response structure:', data)
+    throw new Error('Invalid response format from Gemini Image Generation API')
+  }
+
+  // Find the part with inlineData (the generated image)
+  const imagePart = data.candidates[0].content.parts.find((part: any) => part.inlineData)
+  
+  if (!imagePart || !imagePart.inlineData || !imagePart.inlineData.data) {
+    console.error('❌ No image data found in Gemini response:', data)
+    throw new Error('No image data found in Gemini Image Generation response')
   }
 
   // Decode base64 to binary data
-  const base64Data = data.generatedImages[0].bytesBase64Encoded
+  const base64Data = imagePart.inlineData.data
   const binaryString = atob(base64Data)
   const bytes = new Uint8Array(binaryString.length)
   
@@ -529,7 +537,7 @@ async function callImagenAPI(prompt: string, modelId: string, apiKey: string): P
     bytes[i] = binaryString.charCodeAt(i)
   }
 
-  console.log(`✅ Image generated successfully with ${modelId}, size: ${bytes.length} bytes`)
+  console.log('✅ Image generated successfully with Gemini 2.0 Flash Preview, size:', bytes.length, 'bytes')
   return bytes
 }
 
@@ -552,19 +560,12 @@ async function generateStepImage(
   let imageData: Uint8Array | null = null
   
   try {
-    // Try Imagen 4.0 first
-    console.log(`🎨 Attempting image generation with Imagen 4.0 for step ${stepIndex + 1}`)
-    imageData = await callImagenAPI(enhancedPrompt, 'imagen-4.0-generate-preview-06-06', geminiApiKey)
+    // Use Gemini 2.0 Flash Preview Image Generation
+    console.log(`🎨 Attempting image generation with Gemini 2.0 Flash Preview for step ${stepIndex + 1}`)
+    imageData = await callGeminiImageGenerationAPI(enhancedPrompt, geminiApiKey)
   } catch (error) {
-    console.log(`⚠️ Imagen 4.0 failed for step ${stepIndex + 1}, trying Imagen 3.0:`, error.message)
-    
-    try {
-      // Fallback to Imagen 3.0
-      imageData = await callImagenAPI(enhancedPrompt, 'imagen-3.0-generate-002', geminiApiKey)
-    } catch (fallbackError) {
-      console.error(`❌ Both Imagen models failed for step ${stepIndex + 1}:`, fallbackError.message)
-      return getPlaceholderImage(stepIndex)
-    }
+    console.error(`❌ Gemini Image Generation failed for step ${stepIndex + 1}:`, error.message)
+    return getPlaceholderImage(stepIndex)
   }
 
   if (!imageData) {
