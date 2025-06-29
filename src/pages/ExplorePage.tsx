@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { supabase } from '@/lib/supabase'
 import { useLikeProject } from '@/hooks/useLikeProject'
+import { useAuth } from '@/contexts/AuthContext'
 import { Database } from '@/types/database'
 
 type Project = Database['public']['Tables']['projects']['Row'] & {
@@ -21,6 +22,7 @@ interface ProjectCardProps {
 }
 
 function ProjectCard({ project }: ProjectCardProps) {
+  const { user } = useAuth()
   const { isLiked, likesCount, toggleLike, loading } = useLikeProject(
     project.id, 
     project.likes_count || 0
@@ -29,6 +31,13 @@ function ProjectCard({ project }: ProjectCardProps) {
   const handleLikeClick = (e: React.MouseEvent) => {
     e.preventDefault() // Prevent navigation when clicking the heart
     e.stopPropagation()
+    
+    if (!user) {
+      // Redirect to auth page if not logged in
+      window.location.href = '/auth'
+      return
+    }
+    
     toggleLike()
   }
 
@@ -92,6 +101,7 @@ function ProjectCard({ project }: ProjectCardProps) {
                 ? 'bg-red-50 hover:bg-red-100 text-red-600' 
                 : 'bg-white/80 hover:bg-white text-gray-600 hover:text-red-600'
             }`}
+            title={user ? (isLiked ? 'Remove from favorites' : 'Add to favorites') : 'Sign in to like projects'}
           >
             <Heart 
               className={`w-4 h-4 transition-all duration-200 ${
@@ -135,16 +145,21 @@ function ProjectCard({ project }: ProjectCardProps) {
 }
 
 export function ExplorePage() {
+  const { user } = useAuth()
   const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     fetchProjects()
-  }, [])
+  }, [user])
 
   async function fetchProjects() {
     try {
+      setError(null)
+      
+      // For unauthenticated users, we need to use the anon key and ensure we only get public projects
       const { data, error } = await supabase
         .from('projects')
         .select(`
@@ -157,10 +172,40 @@ export function ExplorePage() {
         .eq('public', true)
         .order('created_at', { ascending: false })
 
-      if (error) throw error
-      setProjects(data || [])
+      if (error) {
+        console.error('Error fetching projects:', error)
+        // If there's an auth error, still try to show what we can
+        if (error.code === 'PGRST301' || error.message.includes('JWT')) {
+          // Try a simpler query without user data for unauthenticated users
+          const { data: simpleData, error: simpleError } = await supabase
+            .from('projects')
+            .select('*')
+            .eq('public', true)
+            .order('created_at', { ascending: false })
+          
+          if (simpleError) {
+            throw simpleError
+          }
+          
+          // Map the data to include empty user info
+          const projectsWithEmptyUsers = (simpleData || []).map(project => ({
+            ...project,
+            users: {
+              full_name: null,
+              email: 'anonymous@example.com'
+            }
+          }))
+          
+          setProjects(projectsWithEmptyUsers)
+        } else {
+          throw error
+        }
+      } else {
+        setProjects(data || [])
+      }
     } catch (error) {
       console.error('Error fetching projects:', error)
+      setError('Failed to load projects. Please try again later.')
     } finally {
       setLoading(false)
     }
@@ -187,6 +232,14 @@ export function ExplorePage() {
               </Button>
               <h1 className="text-3xl font-bold text-gray-900">Explore Projects</h1>
             </div>
+            
+            {!user && (
+              <div className="flex items-center space-x-2">
+                <Button variant="outline" asChild className="text-emerald-600 border-emerald-600 hover:bg-emerald-50">
+                  <Link to="/auth">Sign In</Link>
+                </Button>
+              </div>
+            )}
           </div>
 
           <div className="flex items-center space-x-4">
@@ -212,7 +265,26 @@ export function ExplorePage() {
           <p className="text-gray-600">
             {filteredProjects.length} project{filteredProjects.length !== 1 ? 's' : ''} found
           </p>
+          {!user && (
+            <p className="text-sm text-emerald-600">
+              <Link to="/auth" className="hover:underline">Sign in</Link> to like projects and create your own!
+            </p>
+          )}
         </div>
+
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <p className="text-red-800">{error}</p>
+            <Button 
+              onClick={fetchProjects} 
+              variant="outline" 
+              size="sm" 
+              className="mt-2 text-red-600 border-red-300 hover:bg-red-100"
+            >
+              Try Again
+            </Button>
+          </div>
+        )}
 
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -234,13 +306,23 @@ export function ExplorePage() {
           </div>
         )}
 
-        {filteredProjects.length === 0 && !loading && (
+        {filteredProjects.length === 0 && !loading && !error && (
           <div className="text-center py-12">
             <div className="text-gray-400 mb-4">
               <Search className="w-12 h-12 mx-auto" />
             </div>
             <h3 className="text-lg font-medium text-gray-900 mb-2">No projects found</h3>
-            <p className="text-gray-600">Try adjusting your search criteria or be the first to share a project!</p>
+            <p className="text-gray-600 mb-4">
+              {searchQuery 
+                ? 'Try adjusting your search criteria or be the first to share a project!' 
+                : 'No public projects available yet. Be the first to share your upcycling project!'
+              }
+            </p>
+            {user && (
+              <Button asChild className="bg-emerald-600 hover:bg-emerald-700">
+                <Link to="/quiz">Create Your First Project</Link>
+              </Button>
+            )}
           </div>
         )}
       </div>
