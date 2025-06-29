@@ -113,13 +113,6 @@ export function MyProjectsPage() {
             </div>
             
             <div className="flex items-center space-x-4">
-              <Button variant="ghost" asChild className="text-emerald-600">
-                <Link to="/">Home</Link>
-              </Button>
-              <Button variant="ghost" asChild className="text-emerald-600">
-                <Link to="/explore">Explore</Link>
-              </Button>
-              <span className="text-emerald-600 font-medium">My Projects</span>
               <Button asChild className="bg-emerald-600 hover:bg-emerald-700 text-white">
                 <Link to="/quiz" className="flex items-center space-x-2">
                   <Plus className="w-4 h-4" />
