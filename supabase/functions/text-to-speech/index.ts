@@ -1,6 +1,6 @@
 import { corsHeaders } from '../_shared/cors.ts';
 
-const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
+const ELEVENLABS_API_KEY = Deno.env.get('ELEVENLABS_API_KEY');
 
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
@@ -11,32 +11,40 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const { text } = await req.json();
+    const { text, voice_settings } = await req.json();
 
     if (!text) {
       throw new Error('Text is required');
     }
 
-    if (!OPENAI_API_KEY) {
-      throw new Error('OpenAI API key not configured');
+    if (!ELEVENLABS_API_KEY) {
+      throw new Error('ElevenLabs API key not configured');
     }
 
-    const response = await fetch('https://api.openai.com/v1/audio/speech', {
+    // Use a default voice ID (Rachel - a natural sounding voice)
+    const voiceId = '21m00Tcm4TlvDq8ikWAM';
+
+    const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
+        'xi-api-key': ELEVENLABS_API_KEY,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'tts-1',
-        input: text,
-        voice: 'alloy',
-        response_format: 'mp3',
+        text: text,
+        model_id: 'eleven_multilingual_v2',
+        voice_settings: voice_settings || {
+          stability: 0.5,
+          similarity_boost: 0.75,
+          style: 0.0,
+          use_speaker_boost: true
+        }
       }),
     });
 
     if (!response.ok) {
-      throw new Error(`OpenAI API error: ${response.statusText}`);
+      const errorText = await response.text();
+      throw new Error(`ElevenLabs API error: ${response.status} ${response.statusText} - ${errorText}`);
     }
 
     const audioBuffer = await response.arrayBuffer();
