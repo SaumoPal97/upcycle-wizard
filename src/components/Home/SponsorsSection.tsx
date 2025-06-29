@@ -4,7 +4,7 @@ export function SponsorsSection() {
   return (
     <div className="bg-white border-b border-gray-100">
       <div className="w-full px-4 py-3">
-        <div className="flex justify-end">
+        <div className="flex justify-center">
           <div className="flex items-center space-x-6">
             <span className="text-sm text-gray-600 font-medium">Powered by:</span>
             
