@@ -8,7 +8,12 @@ import { supabase } from '@/lib/supabase'
 import { useLikeProject } from '@/hooks/useLikeProject'
 import { Database } from '@/types/database'
 
-type Project = Database['public']['Tables']['projects']['Row']
+type Project = Database['public']['Tables']['projects']['Row'] & {
+  users: {
+    full_name: string | null
+    email: string
+  }
+}
 
 interface ProjectCardProps {
   project: Project
@@ -24,6 +29,15 @@ function ProjectCard({ project }: ProjectCardProps) {
     e.preventDefault() // Prevent navigation when clicking the heart
     e.stopPropagation()
     toggleLike()
+  }
+
+  const getCreatorName = () => {
+    if (project.users?.full_name) {
+      return project.users.full_name
+    }
+    // Extract first part of email as fallback
+    const emailName = project.users?.email?.split('@')[0] || 'Anonymous'
+    return emailName.charAt(0).toUpperCase() + emailName.slice(1)
   }
 
   return (
@@ -100,6 +114,10 @@ function ProjectCard({ project }: ProjectCardProps) {
               <span className="text-sm">{likesCount}</span>
             </div>
           </div>
+
+          <div className="mt-2 text-sm text-gray-500">
+            by {getCreatorName()}
+          </div>
         </CardContent>
       </Link>
     </Card>
@@ -118,7 +136,13 @@ export function CommunityFeed() {
     try {
       const { data, error } = await supabase
         .from('projects')
-        .select('*')
+        .select(`
+          *,
+          users (
+            full_name,
+            email
+          )
+        `)
         .eq('public', true)
         .order('created_at', { ascending: false })
         .limit(8)
@@ -148,7 +172,11 @@ export function CommunityFeed() {
       created_at: '2024-01-15T10:00:00Z',
       estimated_time: null,
       budget: null,
-      environmental_score: null
+      environmental_score: null,
+      users: {
+        full_name: 'Sarah Johnson',
+        email: 'sarah.johnson@example.com'
+      }
     },
     {
       id: '2',
@@ -165,7 +193,11 @@ export function CommunityFeed() {
       created_at: '2024-01-14T10:00:00Z',
       estimated_time: null,
       budget: null,
-      environmental_score: null
+      environmental_score: null,
+      users: {
+        full_name: 'Mike Rodriguez',
+        email: 'mike.rodriguez@example.com'
+      }
     },
     {
       id: '3',
@@ -182,7 +214,11 @@ export function CommunityFeed() {
       created_at: '2024-01-13T10:00:00Z',
       estimated_time: null,
       budget: null,
-      environmental_score: null
+      environmental_score: null,
+      users: {
+        full_name: 'Emma Chen',
+        email: 'emma.chen@example.com'
+      }
     },
     {
       id: '4',
@@ -199,7 +235,11 @@ export function CommunityFeed() {
       created_at: '2024-01-12T10:00:00Z',
       estimated_time: null,
       budget: null,
-      environmental_score: null
+      environmental_score: null,
+      users: {
+        full_name: 'Alex Thompson',
+        email: 'alex.thompson@example.com'
+      }
     }
   ]
 
