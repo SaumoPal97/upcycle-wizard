@@ -165,7 +165,7 @@ export function ProjectPage() {
               className="flex items-center space-x-2 text-emerald-600"
             >
               <ArrowLeft className="w-4 h-4" />
-              <span>Back to Quiz</span>
+              <span>Back to Explore</span>
             </Button>
             
             <div className="text-right">
