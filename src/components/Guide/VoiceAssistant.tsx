@@ -276,7 +276,7 @@ export function VoiceAssistant({ project, currentStep }: VoiceAssistantProps) {
                 size="sm"
                 variant="ghost"
                 onClick={stopSpeaking}
-                className="p-1 h-8 w-8 hover:bg-red-50"
+                className="bg-white p-1 h-8 w-8 hover:bg-red-50"
               >
                 <VolumeX className="w-4 h-4 text-red-600" />
               </Button>
