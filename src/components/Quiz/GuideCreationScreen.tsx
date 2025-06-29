@@ -16,10 +16,10 @@ interface LoadingStep {
 }
 
 const loadingSteps: LoadingStep[] = [
-  { id: 'analyzing', text: 'Analyzing your furniture...', duration: 3000 },
-  { id: 'generating', text: 'Generating personalized guide...', duration: 4000 },
-  { id: 'images', text: 'Creating step-by-step images...', duration: 3500 },
-  { id: 'finalizing', text: 'Finalizing recommendations...', duration: 2500 },
+  { id: 'analyzing', text: 'Analyzing your furniture...', duration: 9000 }, // 3x 3000
+  { id: 'generating', text: 'Generating personalized guide...', duration: 12000 }, // 3x 4000
+  { id: 'images', text: 'Creating step-by-step images...', duration: 10500 }, // 3x 3500
+  { id: 'finalizing', text: 'Finalizing recommendations...', duration: 7500 }, // 3x 2500
 ]
 
 export function GuideCreationScreen({ projectId, onComplete }: GuideCreationScreenProps) {
