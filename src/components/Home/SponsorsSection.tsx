@@ -5,8 +5,27 @@ export function SponsorsSection() {
     <div className="bg-white border-b border-gray-100">
       <div className="w-full px-4 py-3">
         <div className="flex justify-end">
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-6">
             <span className="text-sm text-gray-600 font-medium">Powered by:</span>
+            
+            {/* Anthropic Badge */}
+            <a
+              href="https://www.anthropic.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex items-center space-x-2 hover:opacity-80 transition-opacity duration-200"
+              title="AI powered by Anthropic"
+            >
+              <img
+                src="https://raw.githubusercontent.com/kickiniteasy/bolt-hackathon-badge/main/src/public/anthropic/logo-black.svg"
+                alt="Anthropic"
+                className="w-6 h-6 md:w-8 md:h-8"
+              />
+              <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900 transition-colors duration-200">
+                Anthropic
+              </span>
+              <ExternalLink className="w-3 h-3 text-gray-400 group-hover:text-gray-600 transition-colors duration-200" />
+            </a>
             
             {/* Bolt.new Badge */}
             <a
