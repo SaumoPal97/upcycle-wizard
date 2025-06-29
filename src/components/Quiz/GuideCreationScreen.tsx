@@ -27,23 +27,27 @@ export function GuideCreationScreen({ onComplete }: GuideCreationScreenProps) {
 
   useEffect(() => {
     if (currentStepIndex >= loadingSteps.length) {
+      setProgress(100)
       setIsComplete(true)
       return
     }
 
     const currentStep = loadingSteps[currentStepIndex]
-    const stepProgress = (currentStepIndex / loadingSteps.length) * 100
+    const baseProgress = (currentStepIndex / loadingSteps.length) * 100
+    const stepProgressIncrement = (1 / loadingSteps.length) * 100
     
     // Animate progress for current step
+    let startTime = Date.now()
     const progressInterval = setInterval(() => {
-      setProgress(prev => {
-        const nextProgress = stepProgress + ((currentStepIndex + 1) / loadingSteps.length) * 100
-        if (prev >= nextProgress) {
-          clearInterval(progressInterval)
-          return nextProgress
-        }
-        return prev + 2
-      })
+      const elapsed = Date.now() - startTime
+      const stepProgress = Math.min((elapsed / currentStep.duration) * stepProgressIncrement, stepProgressIncrement)
+      const totalProgress = baseProgress + stepProgress
+      
+      setProgress(Math.min(totalProgress, 100))
+      
+      if (elapsed >= currentStep.duration) {
+        clearInterval(progressInterval)
+      }
     }, 50)
 
     // Move to next step after duration
