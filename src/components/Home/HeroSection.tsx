@@ -96,7 +96,7 @@ export function HeroSection() {
         </div>
       </div>
       
-      <div className="w-full px-4 text-center relative mt-36">
+      <div className="w-full px-4 text-center relative mt-24">
         <div className="max-w-4xl mx-auto">
           {/* Upcycle Wizard brand centered above AI-powered text - Made bigger */}
           <div className="text-center mb-6">
