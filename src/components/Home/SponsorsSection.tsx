@@ -50,7 +50,7 @@ export function SponsorsSection() {
               <img
                 src={sponsor.logo}
                 alt={sponsor.name}
-                className="w-24 h-24 hover:scale-110 transition-transform duration-200"
+                className="w-16 h-16 hover:scale-110 transition-transform duration-200"
               />
             </a>
           ))}
