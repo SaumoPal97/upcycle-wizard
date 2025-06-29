@@ -65,6 +65,7 @@ export function AuthPage() {
                     placeholder="Full Name"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
+                    className="bg-white text-black placeholder-gray-400 focus:bg-white focus:text-black"
                     required
                   />
                 </div>
@@ -75,6 +76,7 @@ export function AuthPage() {
                   placeholder="Email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  className="bg-white text-black placeholder-gray-400 focus:bg-white focus:text-black"
                   required
                 />
               </div>
@@ -84,6 +86,7 @@ export function AuthPage() {
                   placeholder="Password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  className="bg-white text-black placeholder-gray-400 focus:bg-white focus:text-black"
                   required
                 />
               </div>
