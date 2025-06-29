@@ -193,7 +193,7 @@ export function CommunityFeed() {
               Get Inspired by Our Community
             </h2>
             <p className="text-xl text-gray-600">
-              Discover amazing transformations from our community of upcycling enthusiasts
+              Explore real upcycling transformations made by everyday creators just like you—brilliant, resourceful, and wildly imaginative.
             </p>
           </div>
           <div className="text-center py-12">
@@ -226,7 +226,7 @@ export function CommunityFeed() {
               Get Inspired by Our Community
             </h2>
             <p className="text-xl text-gray-600">
-              Discover amazing transformations from our community of upcycling enthusiasts
+              Explore real upcycling transformations made by everyday creators just like you—brilliant, resourceful, and wildly imaginative.
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -254,7 +254,7 @@ export function CommunityFeed() {
               Get Inspired by Our Community
             </h2>
             <p className="text-xl text-gray-600">
-              Discover amazing transformations from our community of upcycling enthusiasts
+              Explore real upcycling transformations made by everyday creators just like you—brilliant, resourceful, and wildly imaginative.
             </p>
           </div>
           <div className="text-center py-12">
@@ -277,7 +277,7 @@ export function CommunityFeed() {
             Get Inspired by Our Community
           </h2>
           <p className="text-xl text-gray-600">
-            Discover amazing transformations from our community of upcycling enthusiasts
+            Explore real upcycling transformations made by everyday creators just like you—brilliant, resourceful, and wildly imaginative.
           </p>
         </div>
 

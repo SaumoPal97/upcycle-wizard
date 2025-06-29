@@ -42,31 +42,21 @@ export function HeroSection() {
       
       <div className="w-full px-4 text-center relative">
         <div className="max-w-4xl mx-auto">
-          {/* Brand Name and Badge */}
-          <div className="flex items-center justify-center space-x-4 mb-8">
-            <div className="w-12 h-12 bg-emerald-600 rounded-full flex items-center justify-center">
-              <Recycle className="w-7 h-7 text-white" />
-            </div>
-            <h1 className="text-4xl md:text-5xl font-bold text-emerald-700">
-              Upcycle Wizard
-            </h1>
-          </div>
-          
           <div className="inline-flex items-center space-x-2 bg-emerald-100 text-emerald-800 px-4 py-2 rounded-full mb-8 text-sm font-medium">
-            <Sparkles className="w-4 h-4" />
-            <span>AI-Powered Upcycling Made Simple</span>
+            <Recycle className="w-4 h-4" />
+            <span>♻️ AI-Powered Upcycling Made Simple</span>
           </div>
           
-          <h2 className="text-5xl md:text-7xl font-bold text-gray-900 mb-6 leading-tight">
-            Transform Your Furniture with{' '}
+          <h1 className="text-5xl md:text-7xl font-bold text-gray-900 mb-6 leading-tight">
+            Reimagine the Old with{' '}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-green-600">
               AI Magic
             </span>
-          </h2>
+          </h1>
           
           <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto leading-relaxed">
             Upload a photo, answer a few questions, and get a personalized 
-            upcycling guide that turns your old furniture into stunning pieces.
+            upcycling guide that turns your everyday items into something extraordinary—whether it's furniture, décor, or forgotten treasures waiting for a second life.
           </p>
 
           <form onSubmit={handleSubmit} className="max-w-2xl mx-auto mb-8">
@@ -87,7 +77,7 @@ export function HeroSection() {
               </Button>
             </div>
             <p className="text-sm text-gray-500 mt-3">
-              {user ? 'Or click to start the interactive quiz wizard' : 'Please sign in to start your upcycling journey'}
+              {user ? 'Or click to start the interactive quiz wizard' : 'Please sign in to start creating your upcycling plan'}
             </p>
           </form>
 
@@ -97,7 +87,7 @@ export function HeroSection() {
             size="lg"
             className="text-emerald-600 border-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group"
           >
-            {user ? 'Start Your Upcycling Journey' : 'Sign In to Start'}
+            {user ? 'Sign In to Start' : 'Sign In to Start'}
             <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </Button>
         </div>

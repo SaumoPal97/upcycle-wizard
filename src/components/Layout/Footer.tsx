@@ -14,12 +14,12 @@ export function Footer() {
               <span className="font-bold text-xl">Upcycle Wizard</span>
             </div>
             <p className="text-emerald-100 mb-4 max-w-md">
-              Transforming furniture, one piece at a time. 🌱
+              Transforming one item at a time, together.
             </p>
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2 text-emerald-200">
                 <Leaf className="w-4 h-4" />
-                <span className="text-sm">Supporting UN SDG 12 & 13</span>
+                <span className="text-sm">Supporting UN SDGs 12 & 13 for sustainable consumption and climate action.</span>
               </div>
             </div>
           </div>
