@@ -35,28 +35,26 @@ export function SponsorsSection() {
   ]
 
   return (
-    <div className="bg-white border-b border-gray-100">
-      <div className="w-full px-4 py-3">
-        <div className="flex justify-end">
-          <div className="flex items-center space-x-1 text-xs text-gray-500">
-            <span className="mr-2">Powered by:</span>
-            {sponsors.map((sponsor, index) => (
-              <a
-                key={sponsor.name}
-                href={sponsor.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group hover:opacity-80 transition-opacity duration-200"
-                title={sponsor.title}
-              >
-                <img
-                  src={sponsor.logo}
-                  alt={sponsor.name}
-                  className="w-5 h-5 hover:scale-110 transition-transform duration-200"
-                />
-              </a>
-            ))}
-          </div>
+    <div className="w-full px-4 py-3">
+      <div className="flex justify-end">
+        <div className="flex items-center space-x-2 text-xs text-gray-500">
+          <span className="mr-3">Powered by:</span>
+          {sponsors.map((sponsor, index) => (
+            <a
+              key={sponsor.name}
+              href={sponsor.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group hover:opacity-80 transition-opacity duration-200"
+              title={sponsor.title}
+            >
+              <img
+                src={sponsor.logo}
+                alt={sponsor.name}
+                className="w-8 h-8 hover:scale-110 transition-transform duration-200"
+              />
+            </a>
+          ))}
         </div>
       </div>
     </div>
