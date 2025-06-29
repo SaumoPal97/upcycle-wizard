@@ -54,7 +54,7 @@ export function GuideStepView({
             <Button
               variant="ghost"
               onClick={onBackToOverview}
-              className="bg-white flex items-center space-x-2 text-emerald-600"
+              className="bg-white border-emerald-600 flex items-center space-x-2 text-emerald-600"
             >
               <ArrowLeft className="w-4 h-4" />
               <span>Back to Explore</span>
