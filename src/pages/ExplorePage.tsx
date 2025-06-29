@@ -155,7 +155,7 @@ export function ExplorePage() {
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-4">
-              <Button variant="ghost" asChild className="flex items-center space-x-2">
+              <Button variant="ghost" asChild className="flex items-center space-x-2 text-emerald-600">
                 <Link to="/">
                   <ArrowLeft className="w-4 h-4" />
                   <span>Back</span>
