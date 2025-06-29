@@ -1,135 +1,385 @@
-import { corsHeaders } from '../_shared/cors.ts';
+import { createClient } from 'npm:@supabase/supabase-js@2'
 
-const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+}
 
 interface QuizData {
-  furnitureType: string;
-  condition: string;
-  rooms: string[];
-  style: string;
-  size: string;
-  colorVibe: string;
-  customColor?: string;
-  materials: string[];
-  tools: string[];
-  budget: number;
-  addons: string[];
-  recyclables: string[];
-  customRecyclables?: string;
-  photos: string[];
+  photos: string[]
+  furnitureType: string
+  size: string
+  materials: string[]
+  condition: string
+  rooms: string[]
+  style: string
+  colorVibe: string
+  customColor?: string
+  addons: string[]
+  recyclables: string[]
+  customRecyclables?: string
+  tools: string[]
+  budget: number | null
+  initialPrompt?: string
 }
 
 interface GuideStep {
-  step_number: number;
-  title: string;
-  description: string;
-  image_url?: string;
-  tools_needed: string[];
-  materials_needed: string[];
-  estimated_time: string;
+  title: string
+  description: string
+  tools_needed: string[]
+  materials_needed: string[]
+  estimated_time?: string
 }
 
-Deno.serve(async (req: Request) => {
+interface GuideData {
+  title: string
+  overview: string
+  steps: GuideStep[]
+  materials_list: string[]
+  recyclables_used: string[]
+  estimated_time: string
+  difficulty: string
+  environmental_score: number
+}
+
+// Retry configuration
+const RETRY_CONFIG = {
+  maxRetries: 3,
+  baseDelay: 2000, // 2 seconds
+  maxDelay: 30000, // 30 seconds
+}
+
+// Sleep utility for delays
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
+
+// Calculate exponential backoff delay
+const calculateDelay = (attempt: number): number => {
+  const delay = RETRY_CONFIG.baseDelay * Math.pow(2, attempt)
+  return Math.min(delay, RETRY_CONFIG.maxDelay)
+}
+
+Deno.serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, {
-      status: 200,
-      headers: corsHeaders,
-    });
+    return new Response(null, { headers: corsHeaders })
   }
 
-  try {
-    const { projectId, quizData }: { projectId: string; quizData: QuizData } = await req.json();
+  const startTime = Date.now()
+  console.log('🚀 Starting guide generation request')
 
-    if (!GEMINI_API_KEY) {
-      console.error('GEMINI_API_KEY not found in environment variables');
+  try {
+    const { projectId, quizData }: { projectId: string; quizData: QuizData } = await req.json()
+
+    if (!projectId || !quizData) {
+      console.error('❌ Missing required parameters:', { projectId: !!projectId, quizData: !!quizData })
+      throw new Error('Missing required parameters: projectId and quizData are required')
+    }
+
+    console.log('📋 Request parameters validated:', {
+      projectId,
+      furnitureType: quizData.furnitureType,
+      style: quizData.style,
+      photosCount: quizData.photos?.length || 0
+    })
+
+    // Check if Gemini API key is configured
+    const geminiApiKey = Deno.env.get('GEMINI_API_KEY')
+    if (!geminiApiKey) {
+      console.error('🔑 GEMINI_API_KEY environment variable is not configured')
       return new Response(
         JSON.stringify({ 
-          error: 'AI service is not properly configured',
+          error: 'API configuration error. Please configure the GEMINI_API_KEY environment variable in your Supabase Edge Function settings.',
           code: 'MISSING_API_KEY',
-          details: 'The Gemini API key is not configured. Please contact support.'
+          timestamp: new Date().toISOString()
         }),
         {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 500,
-          headers: {
-            ...corsHeaders,
-            'Content-Type': 'application/json',
-          },
         }
-      );
+      )
     }
 
-    console.log('Generating guide for project:', projectId);
-    console.log('Quiz data received:', JSON.stringify(quizData, null, 2));
+    console.log('🔑 API key validation passed')
 
-    const prompt = `Create a detailed DIY furniture upcycling guide based on the following information:
-
-Furniture Type: ${quizData.furnitureType}
-Current Condition: ${quizData.condition}
-Target Rooms: ${quizData.rooms?.join(', ') || 'Not specified'}
-Desired Style: ${quizData.style}
-Size: ${quizData.size}
-Color Preference: ${quizData.colorVibe}${quizData.customColor ? ` (Custom: ${quizData.customColor})` : ''}
-Available Materials: ${quizData.materials?.join(', ') || 'Not specified'}
-Available Tools: ${quizData.tools?.join(', ') || 'Not specified'}
-Budget: $${quizData.budget || 'Not specified'}
-Additional Features: ${quizData.addons?.join(', ') || 'None'}
-Recyclable Materials: ${quizData.recyclables?.join(', ') || 'None'}${quizData.customRecyclables ? ` (Custom: ${quizData.customRecyclables})` : ''}
-
-Please create a comprehensive step-by-step guide with the following requirements:
-1. Each step should have a clear title and detailed description (2-3 sentences minimum)
-2. List specific tools and materials needed for each step
-3. Provide realistic time estimates for each step
-4. Include safety tips where relevant
-5. Make it beginner-friendly but thorough
-6. Create 4-8 logical steps that flow naturally
-7. Consider the user's available tools and budget constraints
-8. Incorporate any recyclable materials creatively
-9. Match the desired style and color preferences
-
-Return the response as a valid JSON object with this exact structure:
-{
-  "title": "Descriptive Project Title",
-  "overview": "Brief 2-3 sentence project overview explaining the transformation",
-  "difficulty": "Beginner|Intermediate|Advanced",
-  "estimated_time": "Total time estimate (e.g., '2-3 days', '4-6 hours')",
-  "environmental_score": 85,
-  "materials_list": ["material1", "material2", "material3"],
-  "steps": [
-    {
-      "step_number": 1,
-      "title": "Step Title",
-      "description": "Detailed step description with safety tips and specific instructions",
-      "tools_needed": ["tool1", "tool2"],
-      "materials_needed": ["material1", "material2"],
-      "estimated_time": "30 minutes"
+    // Initialize Supabase client
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.error('🗄️ Supabase configuration missing:', { 
+        hasUrl: !!supabaseUrl, 
+        hasServiceKey: !!supabaseServiceKey 
+      })
+      throw new Error('Supabase configuration error')
     }
-  ]
+
+    const supabase = createClient(supabaseUrl, supabaseServiceKey)
+    console.log('🗄️ Supabase client initialized')
+
+    // Generate guide using Google Gemini with retry logic
+    console.log('🤖 Starting guide generation with Gemini 2.0 Flash Experimental')
+    const guide = await generateGuideWithRetry(quizData, geminiApiKey)
+    console.log('✅ Guide generation completed:', {
+      title: guide.title,
+      stepsCount: guide.steps.length,
+      difficulty: guide.difficulty,
+      estimatedTime: guide.estimated_time
+    })
+    
+    // Generate images for each step
+    console.log('🖼️ Starting image generation for steps')
+    const stepsWithImages = await Promise.all(
+      guide.steps.map(async (step, index) => {
+        try {
+          const imageUrl = await generateStepImage(step, quizData, index)
+          console.log(`✅ Image generated for step ${index + 1}:`, imageUrl)
+          return { ...step, image_url: imageUrl }
+        } catch (error) {
+          console.error(`❌ Failed to generate image for step ${index + 1}:`, error.message)
+          return step
+        }
+      })
+    )
+
+    const finalGuide = { ...guide, steps: stepsWithImages }
+    console.log('🖼️ Image generation completed')
+
+    // Update project with generated guide
+    console.log('💾 Updating project in database')
+    const { error: updateError } = await supabase
+      .from('projects')
+      .update({
+        guide_json: finalGuide,
+        style: quizData.style,
+        room: quizData.rooms[0] || null,
+        difficulty: finalGuide.difficulty,
+        estimated_time: finalGuide.estimated_time,
+        budget: quizData.budget,
+        environmental_score: finalGuide.environmental_score,
+        cover_image_url: stepsWithImages[0]?.image_url || null,
+      })
+      .eq('id', projectId)
+
+    if (updateError) {
+      console.error('❌ Failed to update project:', updateError)
+      throw new Error(`Database update failed: ${updateError.message}`)
+    }
+
+    console.log('✅ Project updated successfully')
+
+    // Insert steps into database
+    console.log('💾 Inserting steps into database')
+    const stepsData = stepsWithImages.map((step, index) => ({
+      project_id: projectId,
+      step_number: index + 1,
+      title: step.title,
+      description: step.description,
+      image_url: step.image_url || null,
+      tools_needed: step.tools_needed,
+      materials_needed: step.materials_needed,
+      estimated_time: step.estimated_time || null,
+    }))
+
+    const { error: stepsError } = await supabase
+      .from('steps')
+      .insert(stepsData)
+
+    if (stepsError) {
+      console.error('❌ Failed to insert steps:', stepsError)
+      throw new Error(`Steps insertion failed: ${stepsError.message}`)
+    }
+
+    const totalTime = Date.now() - startTime
+    console.log('🎉 Guide generation completed successfully:', {
+      totalTime: `${totalTime}ms`,
+      projectId,
+      stepsCount: stepsData.length
+    })
+
+    return new Response(
+      JSON.stringify({ 
+        success: true, 
+        guide: finalGuide,
+        metadata: {
+          processingTime: totalTime,
+          timestamp: new Date().toISOString()
+        }
+      }),
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
+      }
+    )
+  } catch (error) {
+    const totalTime = Date.now() - startTime
+    console.error('💥 Error generating guide:', {
+      error: error.message,
+      stack: error.stack,
+      processingTime: `${totalTime}ms`,
+      timestamp: new Date().toISOString()
+    })
+    
+    // Provide more specific error messages
+    let errorMessage = error.message
+    let errorCode = 'UNKNOWN_ERROR'
+    let statusCode = 500
+    
+    if (error.message.includes('Too Many Requests') || error.message.includes('rate limit')) {
+      errorMessage = 'API rate limit exceeded. Please try again in a few minutes.'
+      errorCode = 'RATE_LIMIT_EXCEEDED'
+      statusCode = 429
+    } else if (error.message.includes('API key') || error.message.includes('authentication')) {
+      errorMessage = 'Invalid API key configuration. Please check your Gemini API key.'
+      errorCode = 'INVALID_API_KEY'
+      statusCode = 401
+    } else if (error.message.includes('Gemini API error')) {
+      errorMessage = 'External AI service error. Please try again later.'
+      errorCode = 'EXTERNAL_API_ERROR'
+      statusCode = 502
+    } else if (error.message.includes('Database') || error.message.includes('Supabase')) {
+      errorMessage = 'Database operation failed. Please try again.'
+      errorCode = 'DATABASE_ERROR'
+      statusCode = 500
+    } else if (error.message.includes('JSON')) {
+      errorMessage = 'AI response parsing error. Please try again.'
+      errorCode = 'PARSING_ERROR'
+      statusCode = 500
+    }
+    
+    return new Response(
+      JSON.stringify({ 
+        error: errorMessage,
+        code: errorCode,
+        details: error.message,
+        timestamp: new Date().toISOString(),
+        processingTime: totalTime
+      }),
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: statusCode,
+      }
+    )
+  }
+})
+
+async function generateGuideWithRetry(quizData: QuizData, geminiApiKey: string): Promise<GuideData> {
+  let lastError: Error | null = null
+  
+  for (let attempt = 0; attempt <= RETRY_CONFIG.maxRetries; attempt++) {
+    try {
+      if (attempt > 0) {
+        const delay = calculateDelay(attempt - 1)
+        console.log(`⏳ Retry attempt ${attempt}/${RETRY_CONFIG.maxRetries}, waiting ${delay}ms before retry`)
+        await sleep(delay)
+      }
+      
+      console.log(`🤖 Attempting Gemini API call (attempt ${attempt + 1}/${RETRY_CONFIG.maxRetries + 1})`)
+      return await generateGuide(quizData, geminiApiKey)
+      
+    } catch (error) {
+      lastError = error
+      console.error(`❌ Attempt ${attempt + 1} failed:`, error.message)
+      
+      // Don't retry for certain types of errors
+      if (error.message.includes('API key') || 
+          error.message.includes('authentication') ||
+          error.message.includes('Invalid response format') ||
+          error.message.includes('Failed to parse')) {
+        console.log('🚫 Non-retryable error detected, stopping retries')
+        throw error
+      }
+      
+      // Don't retry if this was the last attempt
+      if (attempt === RETRY_CONFIG.maxRetries) {
+        console.error(`💥 All retry attempts exhausted (${RETRY_CONFIG.maxRetries + 1} total attempts)`)
+        break
+      }
+      
+      // Only retry for rate limits and server errors
+      if (error.message.includes('Too Many Requests') || 
+          error.message.includes('500') || 
+          error.message.includes('502') || 
+          error.message.includes('503')) {
+        console.log('🔄 Retryable error detected, will retry')
+        continue
+      } else {
+        console.log('🚫 Non-retryable error detected, stopping retries')
+        throw error
+      }
+    }
+  }
+  
+  // If we get here, all retries failed
+  throw lastError || new Error('All retry attempts failed')
 }
 
-Important: Return ONLY the JSON object, no additional text or formatting.`;
+async function generateGuide(quizData: QuizData, geminiApiKey: string): Promise<GuideData> {
+  const colorPreference = quizData.colorVibe + (quizData.customColor ? ` (Custom: ${quizData.customColor})` : '')
+  
+  const prompt = `You are a helpful interior design and DIY expert. A user has submitted the following quiz response to upcycle a piece of furniture:
 
-    console.log('Calling Gemini API with prompt length:', prompt.length);
+Furniture Type: ${quizData.furnitureType}
+Size: ${quizData.size}
+Materials: ${quizData.materials.join(', ')}
+Condition: ${quizData.condition}
+Target Rooms: ${quizData.rooms.join(', ')}
+Style: ${quizData.style}
+Color Preference: ${colorPreference}
+Add-ons: ${quizData.addons.join(', ')}
+Recyclables: ${quizData.recyclables.join(', ')}${quizData.customRecyclables ? ` (Custom: ${quizData.customRecyclables})` : ''}
+Available Tools: ${quizData.tools.join(', ')}
+Budget: $${quizData.budget || 'Not specified'}
+${quizData.initialPrompt ? `Initial Idea: ${quizData.initialPrompt}` : ''}
 
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GEMINI_API_KEY}`, {
+Based on this, create a complete step-by-step upcycling guide. Your response must be valid JSON with the following format:
+
+{
+  "title": "Short project title",
+  "overview": "2-3 paragraph summary of the project, the creative goal, and what it will become",
+  "steps": [
+    {
+      "title": "Step title",
+      "description": "2-5 sentence friendly, clear instructions",
+      "tools_needed": ["array", "of", "tools"],
+      "materials_needed": ["array", "of", "materials"],
+      "estimated_time": "time estimate like '30 minutes'"
+    }
+  ],
+  "materials_list": ["deduplicated", "full", "list"],
+  "recyclables_used": ["if any submitted recyclable was reused, describe how"],
+  "estimated_time": "total project time",
+  "difficulty": "Beginner|Intermediate|Advanced",
+  "environmental_score": 4.2
+}
+
+Guidelines:
+- Be beginner-friendly, warm, and clear
+- Reflect user's chosen style, palette, and room
+- Stay within the user's tool availability and budget
+- Include 5-8 detailed steps
+- Calculate environmental score (1-5) based on materials reused and sustainability
+- Make the title creative and specific`
+
+  try {
+    console.log('📡 Making request to Gemini 2.0 Flash Experimental API')
+    // Updated to use Gemini 2.0 Flash Experimental model
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${geminiApiKey}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        contents: [
-          {
-            parts: [
-              {
-                text: prompt
-              }
-            ]
-          }
-        ],
+        contents: [{
+          parts: [{
+            text: prompt
+          }]
+        }],
         generationConfig: {
           temperature: 0.7,
           topK: 40,
           topP: 0.95,
-          maxOutputTokens: 4096,
+          maxOutputTokens: 2048,
         },
         safetySettings: [
           {
@@ -149,211 +399,87 @@ Important: Return ONLY the JSON object, no additional text or formatting.`;
             threshold: "BLOCK_MEDIUM_AND_ABOVE"
           }
         ]
-      }),
-    });
+      })
+    })
 
-    console.log('Gemini API response status:', response.status);
+    console.log('📡 Gemini API response received:', {
+      status: response.status,
+      statusText: response.statusText,
+      ok: response.ok
+    })
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Gemini API error response:', errorText);
-      
-      let errorCode = 'EXTERNAL_API_ERROR';
-      let userMessage = 'AI service is temporarily unavailable';
-      
-      if (response.status === 401) {
-        errorCode = 'INVALID_API_KEY';
-        userMessage = 'AI service authentication failed';
-      } else if (response.status === 429) {
-        errorCode = 'RATE_LIMIT_EXCEEDED';
-        userMessage = 'Too many requests, please try again later';
-      }
-      
-      return new Response(
-        JSON.stringify({ 
-          error: userMessage,
-          code: errorCode,
-          details: `Gemini API returned ${response.status}: ${response.statusText}`
-        }),
-        {
-          status: 500,
-          headers: {
-            ...corsHeaders,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-    }
-
-    const data = await response.json();
-    console.log('Gemini API response received');
-
-    if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
-      console.error('Invalid Gemini response structure:', JSON.stringify(data, null, 2));
-      throw new Error('Invalid response from AI service');
-    }
-
-    const guideContent = data.candidates[0].content.parts[0].text;
-    console.log('Generated guide content length:', guideContent.length);
-
-    let guideData;
-    try {
-      // Clean the response - remove any markdown formatting or extra text
-      const cleanedContent = guideContent.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-      guideData = JSON.parse(cleanedContent);
-      console.log('Successfully parsed guide JSON');
-    } catch (parseError) {
-      console.error('JSON parsing failed:', parseError);
-      console.error('Raw content:', guideContent);
-      
-      // Fallback guide data
-      guideData = {
-        title: `${quizData.furnitureType} Upcycling Project`,
-        overview: `Transform your ${quizData.furnitureType} with a ${quizData.style} style makeover that fits perfectly in your ${quizData.rooms?.[0] || 'space'}.`,
-        difficulty: 'Intermediate',
-        estimated_time: '2-3 days',
-        environmental_score: 85,
-        materials_list: [
-          'Sandpaper (120 & 220 grit)',
-          'Primer',
-          'Paint or stain',
-          'Brushes and rollers',
-          'Protective finish'
-        ],
-        steps: [
-          {
-            step_number: 1,
-            title: 'Preparation and Cleaning',
-            description: 'Remove all hardware and clean the furniture thoroughly. Sand any rough areas and wipe down with a damp cloth to ensure proper paint adhesion.',
-            tools_needed: quizData.tools?.slice(0, 3) || ['Screwdriver', 'Sandpaper', 'Cleaning cloth'],
-            materials_needed: ['Wood cleaner', 'Sandpaper', 'Tack cloth'],
-            estimated_time: '2 hours'
-          },
-          {
-            step_number: 2,
-            title: 'Surface Preparation',
-            description: 'Apply primer to ensure even coverage and better paint adhesion. Allow to dry completely according to manufacturer instructions.',
-            tools_needed: ['Paint brushes', 'Roller', 'Paint tray'],
-            materials_needed: ['Primer', 'Drop cloths'],
-            estimated_time: '3 hours'
-          },
-          {
-            step_number: 3,
-            title: 'Main Finish Application',
-            description: 'Apply your chosen paint or stain in thin, even coats. Work in the direction of the wood grain and maintain a wet edge to avoid lap marks.',
-            tools_needed: ['Paint brushes', 'Roller', 'Paint tray'],
-            materials_needed: ['Paint or stain', 'Stirring stick'],
-            estimated_time: '4 hours'
-          },
-          {
-            step_number: 4,
-            title: 'Final Details and Protection',
-            description: 'Install new hardware if desired and apply a protective topcoat. Allow to cure completely before use.',
-            tools_needed: ['Drill', 'Screwdriver', 'Fine brush'],
-            materials_needed: ['Hardware', 'Protective finish', 'Screws'],
-            estimated_time: '2 hours'
-          }
-        ]
-      };
-    }
-
-    // Validate the guide data structure
-    if (!guideData.title || !guideData.steps || !Array.isArray(guideData.steps)) {
-      console.error('Invalid guide data structure:', guideData);
-      throw new Error('Generated guide has invalid structure');
-    }
-
-    console.log('Guide validation successful, updating database...');
-
-    // Update the project with the generated guide
-    const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2.39.3');
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-    // Update project with guide data
-    const { error: projectError } = await supabase
-      .from('projects')
-      .update({
-        guide_json: guideData,
-        style: guideData.difficulty || quizData.style,
-        difficulty: guideData.difficulty,
-        estimated_time: guideData.estimated_time,
-        environmental_score: guideData.environmental_score
+      const errorText = await response.text()
+      console.error('❌ Gemini API error response:', {
+        status: response.status,
+        statusText: response.statusText,
+        body: errorText
       })
-      .eq('id', projectId);
-
-    if (projectError) {
-      console.error('Database error updating project:', projectError);
-      return new Response(
-        JSON.stringify({ 
-          error: 'Failed to save guide',
-          code: 'DATABASE_ERROR',
-          details: projectError.message
-        }),
-        {
-          status: 500,
-          headers: {
-            ...corsHeaders,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-    }
-
-    // Insert steps into the steps table
-    const stepsToInsert = guideData.steps.map((step: any) => ({
-      project_id: projectId,
-      step_number: step.step_number,
-      title: step.title,
-      description: step.description,
-      tools_needed: step.tools_needed || [],
-      materials_needed: step.materials_needed || [],
-      estimated_time: step.estimated_time || '30 minutes'
-    }));
-
-    const { error: stepsError } = await supabase
-      .from('steps')
-      .insert(stepsToInsert);
-
-    if (stepsError) {
-      console.error('Database error inserting steps:', stepsError);
-      // Don't fail the entire request if steps insertion fails
-      console.log('Continuing despite steps insertion error...');
-    }
-
-    console.log('Guide generation completed successfully');
-
-    return new Response(
-      JSON.stringify({
-        success: true,
-        guide: guideData,
-        message: 'Guide generated successfully'
-      }),
-      {
-        headers: {
-          ...corsHeaders,
-          'Content-Type': 'application/json',
-        },
+      
+      if (response.status === 429) {
+        throw new Error('Too Many Requests - API rate limit exceeded')
+      } else if (response.status === 401 || response.status === 403) {
+        throw new Error('API key authentication failed')
+      } else if (response.status >= 500) {
+        throw new Error(`Gemini API server error: ${response.status} ${response.statusText}`)
+      } else {
+        throw new Error(`Gemini API error: ${response.status} ${response.statusText}`)
       }
-    );
+    }
 
-  } catch (error) {
-    console.error('Error generating guide:', error);
+    const data = await response.json()
+    console.log('📡 Gemini API response parsed successfully')
     
-    return new Response(
-      JSON.stringify({ 
-        error: 'Failed to generate guide',
-        code: 'INTERNAL_ERROR',
-        details: error.message 
-      }),
-      {
-        status: 500,
-        headers: {
-          ...corsHeaders,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
+    if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
+      console.error('❌ Invalid Gemini API response structure:', data)
+      throw new Error('Invalid response format from Gemini API - missing candidates or content')
+    }
+    
+    const generatedText = data.candidates[0].content.parts[0].text
+    console.log('📝 Generated text length:', generatedText.length)
+
+    // Extract JSON from the response
+    const jsonMatch = generatedText.match(/\{[\s\S]*\}/)
+    if (!jsonMatch) {
+      console.error('❌ No JSON found in Gemini response:', generatedText.substring(0, 500))
+      throw new Error('Failed to extract JSON from Gemini response')
+    }
+
+    console.log('🔍 JSON extracted from response, attempting to parse')
+    try {
+      const parsedGuide = JSON.parse(jsonMatch[0])
+      console.log('✅ Guide JSON parsed successfully:', {
+        title: parsedGuide.title,
+        stepsCount: parsedGuide.steps?.length,
+        difficulty: parsedGuide.difficulty
+      })
+      return parsedGuide
+    } catch (parseError) {
+      console.error('❌ Failed to parse JSON:', {
+        error: parseError.message,
+        json: jsonMatch[0].substring(0, 500)
+      })
+      throw new Error(`Failed to parse generated guide JSON: ${parseError.message}`)
+    }
+  } catch (error) {
+    console.error('💥 Error in generateGuide function:', {
+      error: error.message,
+      stack: error.stack
+    })
+    throw error
   }
-});
+}
+
+async function generateStepImage(step: GuideStep, quizData: QuizData, stepIndex: number): Promise<string> {
+  // For now, return a placeholder image URL
+  // In a real implementation, you would call Google Imagen or another image generation API
+  const placeholderImages = [
+    'https://images.pexels.com/photos/1648377/pexels-photo-1648377.jpeg',
+    'https://images.pexels.com/photos/1866149/pexels-photo-1866149.jpeg',
+    'https://images.pexels.com/photos/2251247/pexels-photo-2251247.jpeg',
+    'https://images.pexels.com/photos/1090638/pexels-photo-1090638.jpeg',
+    'https://images.pexels.com/photos/1571459/pexels-photo-1571459.jpeg',
+  ]
+  
+  return placeholderImages[stepIndex % placeholderImages.length]
+}
