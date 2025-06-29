@@ -330,7 +330,7 @@ export function QuizPage() {
             <Button
               variant="ghost"
               onClick={() => navigate('/')}
-              className="flex items-center space-x-2 text-emerald-600 bg-white border-emerald-600 hover:text-emerald-600 hover:border-emerald-600"
+              className="bg-white border-emerald-600 hover:border-emerald-600 flex items-center space-x-2 text-emerald-600 hover:text-emerald-600 flex items-center space-x-2 text-emerald-600 bg-white border-emerald-600 hover:text-emerald-600 hover:border-emerald-600"
             >
               <ArrowLeft className="w-4 h-4" />
               <span>Back to Quiz</span>
