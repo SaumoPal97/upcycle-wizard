@@ -27,6 +27,22 @@ export function SponsorsSection() {
               <ExternalLink className="w-3 h-3 text-gray-400 group-hover:text-gray-600 transition-colors duration-200" />
             </a>
 
+            {/* Supabase Badge */}
+            <a
+              href="https://supabase.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex items-center space-x-2 hover:opacity-80 transition-opacity duration-200"
+              title="Database powered by Supabase"
+            >
+              <img
+                src="https://raw.githubusercontent.com/kickiniteasy/bolt-hackathon-badge/main/src/public/supabase/wordmark-color.svg"
+                alt="Supabase"
+                className="h-4 md:h-5"
+              />
+              <ExternalLink className="w-3 h-3 text-gray-400 group-hover:text-gray-600 transition-colors duration-200" />
+            </a>
+
             {/* ElevenLabs Badge */}
             <a
               href="https://elevenlabs.io/"
