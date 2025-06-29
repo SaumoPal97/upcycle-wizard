@@ -166,138 +166,7 @@ export function ExplorePage() {
     }
   }
 
-  // Sample projects for demo with creator info and environmental scores
-  const sampleProjects = [
-    {
-      id: '1',
-      title: 'Vintage Dresser Makeover',
-      style: 'Bohemian',
-      room: 'Bedroom',
-      likes_count: 124,
-      difficulty: 'Intermediate',
-      cover_image_url: 'https://images.pexels.com/photos/1648377/pexels-photo-1648377.jpeg',
-      user_id: '1',
-      quiz_data: {},
-      guide_json: {},
-      public: true,
-      created_at: '2024-01-15T10:00:00Z',
-      estimated_time: null,
-      budget: null,
-      environmental_score: 85,
-      users: {
-        full_name: 'Sarah Johnson',
-        email: 'sarah.johnson@example.com'
-      }
-    },
-    {
-      id: '2',
-      title: 'Industrial Coffee Table',
-      style: 'Industrial',
-      room: 'Living Room',
-      likes_count: 89,
-      difficulty: 'Advanced',
-      cover_image_url: 'https://images.pexels.com/photos/1866149/pexels-photo-1866149.jpeg',
-      user_id: '2',
-      quiz_data: {},
-      guide_json: {},
-      public: true,
-      created_at: '2024-01-14T10:00:00Z',
-      estimated_time: null,
-      budget: null,
-      environmental_score: 92,
-      users: {
-        full_name: 'Mike Rodriguez',
-        email: 'mike.rodriguez@example.com'
-      }
-    },
-    {
-      id: '3',
-      title: 'Farmhouse Bookshelf',
-      style: 'Farmhouse',
-      room: 'Office',
-      likes_count: 156,
-      difficulty: 'Beginner',
-      cover_image_url: 'https://images.pexels.com/photos/2251247/pexels-photo-2251247.jpeg',
-      user_id: '3',
-      quiz_data: {},
-      guide_json: {},
-      public: true,
-      created_at: '2024-01-13T10:00:00Z',
-      estimated_time: null,
-      budget: null,
-      environmental_score: 78,
-      users: {
-        full_name: 'Emma Chen',
-        email: 'emma.chen@example.com'
-      }
-    },
-    {
-      id: '4',
-      title: 'Modern Plant Stand',
-      style: 'Modern',
-      room: 'Living Room',
-      likes_count: 73,
-      difficulty: 'Beginner',
-      cover_image_url: 'https://images.pexels.com/photos/1090638/pexels-photo-1090638.jpeg',
-      user_id: '4',
-      quiz_data: {},
-      guide_json: {},
-      public: true,
-      created_at: '2024-01-12T10:00:00Z',
-      estimated_time: null,
-      budget: null,
-      environmental_score: 88,
-      users: {
-        full_name: 'Alex Thompson',
-        email: 'alex.thompson@example.com'
-      }
-    },
-    {
-      id: '5',
-      title: 'Rustic Dining Table',
-      style: 'Rustic',
-      room: 'Dining Room',
-      likes_count: 201,
-      difficulty: 'Advanced',
-      cover_image_url: 'https://images.pexels.com/photos/1571459/pexels-photo-1571459.jpeg',
-      user_id: '5',
-      quiz_data: {},
-      guide_json: {},
-      public: true,
-      created_at: '2024-01-11T10:00:00Z',
-      estimated_time: null,
-      budget: null,
-      environmental_score: 95,
-      users: {
-        full_name: 'David Kim',
-        email: 'david.kim@example.com'
-      }
-    },
-    {
-      id: '6',
-      title: 'Scandinavian Nightstand',
-      style: 'Scandinavian',
-      room: 'Bedroom',
-      likes_count: 95,
-      difficulty: 'Intermediate',
-      cover_image_url: 'https://images.pexels.com/photos/1866149/pexels-photo-1866149.jpeg',
-      user_id: '6',
-      quiz_data: {},
-      guide_json: {},
-      public: true,
-      created_at: '2024-01-10T10:00:00Z',
-      estimated_time: null,
-      budget: null,
-      environmental_score: 82,
-      users: {
-        full_name: 'Lisa Anderson',
-        email: 'lisa.anderson@example.com'
-      }
-    }
-  ]
-
-  const displayProjects = projects.length > 0 ? projects : sampleProjects
-  const filteredProjects = displayProjects.filter(project =>
+  const filteredProjects = projects.filter(project =>
     project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     project.style?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     project.room?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -371,7 +240,7 @@ export function ExplorePage() {
               <Search className="w-12 h-12 mx-auto" />
             </div>
             <h3 className="text-lg font-medium text-gray-900 mb-2">No projects found</h3>
-            <p className="text-gray-600">Try adjusting your search criteria</p>
+            <p className="text-gray-600">Try adjusting your search criteria or be the first to share a project!</p>
           </div>
         )}
       </div>

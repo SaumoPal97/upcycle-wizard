@@ -166,96 +166,7 @@ export function CommunityFeed() {
     }
   }
 
-  const sampleProjects = [
-    {
-      id: '1',
-      title: 'Vintage Dresser Makeover',
-      style: 'Bohemian',
-      room: 'Bedroom',
-      likes_count: 124,
-      difficulty: 'Intermediate',
-      cover_image_url: 'https://images.pexels.com/photos/1648377/pexels-photo-1648377.jpeg',
-      user_id: '1',
-      quiz_data: {},
-      guide_json: {},
-      public: true,
-      created_at: '2024-01-15T10:00:00Z',
-      estimated_time: null,
-      budget: null,
-      environmental_score: 85,
-      users: {
-        full_name: 'Sarah Johnson',
-        email: 'sarah.johnson@example.com'
-      }
-    },
-    {
-      id: '2',
-      title: 'Industrial Coffee Table',
-      style: 'Industrial',
-      room: 'Living Room',
-      likes_count: 89,
-      difficulty: 'Advanced',
-      cover_image_url: 'https://images.pexels.com/photos/1866149/pexels-photo-1866149.jpeg',
-      user_id: '2',
-      quiz_data: {},
-      guide_json: {},
-      public: true,
-      created_at: '2024-01-14T10:00:00Z',
-      estimated_time: null,
-      budget: null,
-      environmental_score: 92,
-      users: {
-        full_name: 'Mike Rodriguez',
-        email: 'mike.rodriguez@example.com'
-      }
-    },
-    {
-      id: '3',
-      title: 'Farmhouse Bookshelf',
-      style: 'Farmhouse',
-      room: 'Office',
-      likes_count: 156,
-      difficulty: 'Beginner',
-      cover_image_url: 'https://images.pexels.com/photos/2251247/pexels-photo-2251247.jpeg',
-      user_id: '3',
-      quiz_data: {},
-      guide_json: {},
-      public: true,
-      created_at: '2024-01-13T10:00:00Z',
-      estimated_time: null,
-      budget: null,
-      environmental_score: 78,
-      users: {
-        full_name: 'Emma Chen',
-        email: 'emma.chen@example.com'
-      }
-    },
-    {
-      id: '4',
-      title: 'Modern Plant Stand',
-      style: 'Modern',
-      room: 'Living Room',
-      likes_count: 73,
-      difficulty: 'Beginner',
-      cover_image_url: 'https://images.pexels.com/photos/1090638/pexels-photo-1090638.jpeg',
-      user_id: '4',
-      quiz_data: {},
-      guide_json: {},
-      public: true,
-      created_at: '2024-01-12T10:00:00Z',
-      estimated_time: null,
-      budget: null,
-      environmental_score: 88,
-      users: {
-        full_name: 'Alex Thompson',
-        email: 'alex.thompson@example.com'
-      }
-    }
-  ]
-
-  const displayProjects = projects.length > 0 ? projects : sampleProjects
-
-  if (loading && projects.length === 0) {
+  if (loading) {
     return (
       <section className="py-16 bg-white w-full">
         <div className="w-full px-4">
@@ -283,6 +194,30 @@ export function CommunityFeed() {
     )
   }
 
+  if (projects.length === 0) {
+    return (
+      <section className="py-16 bg-white w-full">
+        <div className="w-full px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+              Get Inspired by Our Community
+            </h2>
+            <p className="text-xl text-gray-600">
+              Discover amazing transformations from our community of upcycling enthusiasts
+            </p>
+          </div>
+          <div className="text-center py-12">
+            <div className="text-gray-400 mb-4">
+              <Eye className="w-12 h-12 mx-auto" />
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No projects yet</h3>
+            <p className="text-gray-600">Be the first to share your upcycling project with the community!</p>
+          </div>
+        </div>
+      </section>
+    )
+  }
+
   return (
     <section className="py-16 bg-white w-full">
       <div className="w-full px-4">
@@ -296,7 +231,7 @@ export function CommunityFeed() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {displayProjects.map((project) => (
+          {projects.map((project) => (
             <ProjectCard key={project.id} project={project} />
           ))}
         </div>
