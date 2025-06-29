@@ -116,11 +116,11 @@ export function FeedbackModal({ isOpen, onClose, project, onFeedbackSubmitted }:
                 />
                 <Button
                   size="sm"
-                  variant="destructive"
-                  className="absolute top-2 right-2"
+                  variant="ghost"
+                  className="absolute top-2 right-2 bg-white hover:bg-white border-none hover:border-none"
                   onClick={() => setUploadedImage(null)}
                 >
-                  <X className="bg-white hover:bg-white w-4 h-4" />
+                  <X className="w-4 h-4" />
                 </Button>
               </div>
             ) : (
@@ -158,7 +158,7 @@ export function FeedbackModal({ isOpen, onClose, project, onFeedbackSubmitted }:
                 <button
                   key={star}
                   onClick={() => setRating(star)}
-                  className={`border-transparent hover:border-transparent p-1 transition-colors bg-transparent hover:bg-transparent ${
+                  className={`p-1 transition-colors bg-transparent hover:bg-transparent border-transparent hover:border-transparent ${
                     star <= rating ? 'text-yellow-400' : 'text-gray-300'
                   }`}
                 >
