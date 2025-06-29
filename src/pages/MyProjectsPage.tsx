@@ -314,16 +314,6 @@ export function MyProjectsPage() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => navigate(`/project/${project.id}`)}
-                        className="bg-white border-emerald-600 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
-                        title="View project"
-                      >
-                        <Eye className="w-4 h-4" />
-                      </Button>
-                      
-                      <Button
-                        variant="ghost"
-                        size="sm"
                         onClick={() => toggleProjectPublicStatus(project.id, project.public)}
                         disabled={updatingProjects.has(project.id)}
                         className={`bg-white border-emerald-600 hover:bg-emerald-50 ${
