@@ -6,6 +6,7 @@ import { HomePage } from '@/pages/HomePage'
 import { QuizPage } from '@/pages/QuizPage'
 import { ExplorePage } from '@/pages/ExplorePage'
 import { AuthPage } from '@/pages/AuthPage'
+import { ProjectPage } from '@/pages/ProjectPage'
 import { Toaster } from '@/components/ui/sonner'
 
 function App() {
@@ -20,6 +21,7 @@ function App() {
               <Route path="/quiz" element={<QuizPage />} />
               <Route path="/explore" element={<ExplorePage />} />
               <Route path="/auth" element={<AuthPage />} />
+              <Route path="/project/:id" element={<ProjectPage />} />
             </Routes>
           </main>
           <Footer />
