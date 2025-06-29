@@ -137,6 +137,7 @@ function ProjectCard({ project }: ProjectCardProps) {
 export function CommunityFeed() {
   const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     fetchProjects()
@@ -144,6 +145,9 @@ export function CommunityFeed() {
 
   async function fetchProjects() {
     try {
+      setError(null)
+      console.log('Fetching projects...')
+      
       const { data, error } = await supabase
         .from('projects')
         .select(`
@@ -157,10 +161,24 @@ export function CommunityFeed() {
         .order('created_at', { ascending: false })
         .limit(8)
 
-      if (error) throw error
+      if (error) {
+        console.error('Supabase error:', error)
+        throw error
+      }
+      
+      console.log('Projects fetched successfully:', data?.length || 0)
       setProjects(data || [])
     } catch (error) {
       console.error('Error fetching projects:', error)
+      
+      // More specific error handling
+      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+        setError('Unable to connect to the server. Please check your internet connection and try again.')
+      } else if (error && typeof error === 'object' && 'message' in error) {
+        setError(`Database error: ${error.message}`)
+      } else {
+        setError('An unexpected error occurred while loading projects.')
+      }
     } finally {
       setLoading(false)
     }
@@ -188,6 +206,39 @@ export function CommunityFeed() {
                 </CardContent>
               </Card>
             ))}
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  if (error) {
+    return (
+      <section className="py-16 bg-white w-full">
+        <div className="w-full px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+              Get Inspired by Our Community
+            </h2>
+            <p className="text-xl text-gray-600">
+              Discover amazing transformations from our community of upcycling enthusiasts
+            </p>
+          </div>
+          <div className="text-center py-12">
+            <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md mx-auto">
+              <div className="text-red-400 mb-4">
+                <Eye className="w-12 h-12 mx-auto" />
+              </div>
+              <h3 className="text-lg font-medium text-red-900 mb-2">Unable to load projects</h3>
+              <p className="text-red-700 mb-4">{error}</p>
+              <Button 
+                onClick={fetchProjects} 
+                variant="outline" 
+                className="text-red-600 border-red-300 hover:bg-red-100"
+              >
+                Try Again
+              </Button>
+            </div>
           </div>
         </div>
       </section>
