@@ -230,7 +230,7 @@ export function MyProjectsPage() {
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-emerald-100 to-green-100 flex items-center justify-center">
+                        <div className="w-full h-full bg-gradient-to-br from-emerald-100 to-green-100 flex items-center justify-center bg-white">
                           <Eye className="w-8 h-8 text-emerald-400" />
                         </div>
                       )}
