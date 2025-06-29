@@ -24,7 +24,6 @@ export function Header() {
             <div className="w-8 h-8 bg-emerald-600 rounded-full flex items-center justify-center">
               <Recycle className="w-5 h-5 text-white" />
             </div>
-            <span className="font-bold text-xl text-emerald-700">Upcycle Wizard</span>
           </Link>
 
           <nav className="hidden md:flex items-center space-x-6">
