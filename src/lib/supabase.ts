@@ -20,11 +20,6 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseKey, {
     persistSession: true,
     autoRefreshToken: true,
   },
-  global: {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  },
 })
 
 // Test connection
