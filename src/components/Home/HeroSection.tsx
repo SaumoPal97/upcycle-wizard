@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Sparkles, ArrowRight } from 'lucide-react'
+import { Sparkles, ArrowRight, Recycle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useAuth } from '@/contexts/AuthContext'
@@ -42,17 +42,27 @@ export function HeroSection() {
       
       <div className="w-full px-4 text-center relative">
         <div className="max-w-4xl mx-auto">
+          {/* Brand Name and Badge */}
+          <div className="flex items-center justify-center space-x-4 mb-8">
+            <div className="w-12 h-12 bg-emerald-600 rounded-full flex items-center justify-center">
+              <Recycle className="w-7 h-7 text-white" />
+            </div>
+            <h1 className="text-4xl md:text-5xl font-bold text-emerald-700">
+              Upcycle Wizard
+            </h1>
+          </div>
+          
           <div className="inline-flex items-center space-x-2 bg-emerald-100 text-emerald-800 px-4 py-2 rounded-full mb-8 text-sm font-medium">
             <Sparkles className="w-4 h-4" />
             <span>AI-Powered Upcycling Made Simple</span>
           </div>
           
-          <h1 className="text-5xl md:text-7xl font-bold text-gray-900 mb-6 leading-tight">
+          <h2 className="text-5xl md:text-7xl font-bold text-gray-900 mb-6 leading-tight">
             Transform Your Furniture with{' '}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-green-600">
               AI Magic
             </span>
-          </h1>
+          </h2>
           
           <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto leading-relaxed">
             Upload a photo, answer a few questions, and get a personalized 
