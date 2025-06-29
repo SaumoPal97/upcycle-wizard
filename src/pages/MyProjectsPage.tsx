@@ -338,11 +338,10 @@ export function MyProjectsPage() {
                     <div className="flex items-center space-x-2">
                       <Button
                         variant="ghost"
-                        size="sm"
                         onClick={() => navigate(`/project/${project.id}`)}
-                        className="bg-white border-emerald-600 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
+                        className="bg-white border-emerald-600 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 px-3 py-1"
                       >
-                        <Eye className="w-4 h-4" />
+                        <span className="text-sm font-medium">Open Guide</span>
                       </Button>
                       
                       <Button
