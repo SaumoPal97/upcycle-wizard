@@ -149,8 +149,13 @@ Deno.serve(async (req) => {
     const finalGuide = { ...guide, steps: stepsWithImages }
     console.log('🖼️ Sequential image generation completed')
 
-    // Update project with generated guide
+    // Update project with generated guide - using LAST step's image as cover
     console.log('💾 Updating project in database')
+    const lastStepWithImage = stepsWithImages[stepsWithImages.length - 1]
+    const coverImageUrl = lastStepWithImage?.image_url || null
+    
+    console.log('🖼️ Using last step image as cover:', coverImageUrl)
+    
     const { error: updateError } = await supabase
       .from('projects')
       .update({
@@ -161,7 +166,7 @@ Deno.serve(async (req) => {
         estimated_time: finalGuide.estimated_time,
         budget: quizData.budget,
         environmental_score: finalGuide.environmental_score,
-        cover_image_url: stepsWithImages[0]?.image_url || null,
+        cover_image_url: coverImageUrl,
       })
       .eq('id', projectId)
 
