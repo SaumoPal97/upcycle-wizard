@@ -213,8 +213,13 @@ export function QuizPage() {
   }
 
   // Show guide creation screen if submitting
-  if (showGuideCreation) {
-    return <GuideCreationScreen onComplete={handleGuideCreationComplete} />
+  if (showGuideCreation && generatedProjectId) {
+    return (
+      <GuideCreationScreen 
+        projectId={generatedProjectId}
+        onComplete={handleGuideCreationComplete} 
+      />
+    )
   }
 
   const renderCurrentStep = () => {

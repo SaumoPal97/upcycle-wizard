@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react'
 import { CheckCircle, Sparkles, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
+import { supabase } from '@/lib/supabase'
 
 interface GuideCreationScreenProps {
+  projectId: string
   onComplete: () => void
 }
 
@@ -20,15 +22,19 @@ const loadingSteps: LoadingStep[] = [
   { id: 'finalizing', text: 'Finalizing recommendations...', duration: 2500 },
 ]
 
-export function GuideCreationScreen({ onComplete }: GuideCreationScreenProps) {
+export function GuideCreationScreen({ projectId, onComplete }: GuideCreationScreenProps) {
   const [currentStepIndex, setCurrentStepIndex] = useState(0)
   const [progress, setProgress] = useState(0)
+  const [isVisualComplete, setIsVisualComplete] = useState(false)
+  const [isGuideDataReady, setIsGuideDataReady] = useState(false)
   const [isComplete, setIsComplete] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
+  // Visual loading animation effect
   useEffect(() => {
     if (currentStepIndex >= loadingSteps.length) {
       setProgress(100)
-      setIsComplete(true)
+      setIsVisualComplete(true)
       return
     }
 
@@ -61,6 +67,149 @@ export function GuideCreationScreen({ onComplete }: GuideCreationScreenProps) {
     }
   }, [currentStepIndex])
 
+  // Polling effect to check if guide data is ready
+  useEffect(() => {
+    if (!projectId) return
+
+    let pollInterval: NodeJS.Timeout
+    let pollAttempts = 0
+    const maxPollAttempts = 60 // 5 minutes with 5-second intervals
+
+    const checkGuideReady = async () => {
+      try {
+        console.log(`🔍 Checking guide readiness for project ${projectId} (attempt ${pollAttempts + 1})`)
+        
+        const { data: project, error } = await supabase
+          .from('projects')
+          .select('guide_json, title')
+          .eq('id', projectId)
+          .single()
+
+        if (error) {
+          console.error('❌ Error checking project status:', error)
+          
+          // If it's a not found error and we've tried a few times, show error
+          if (error.code === 'PGRST116' && pollAttempts > 5) {
+            setError('Project not found. Please try creating a new project.')
+            clearInterval(pollInterval)
+            return
+          }
+          
+          // For other errors, continue polling for a bit
+          if (pollAttempts > 10) {
+            setError('Unable to check project status. Please try refreshing the page.')
+            clearInterval(pollInterval)
+            return
+          }
+          
+          pollAttempts++
+          return
+        }
+
+        // Check if guide_json is populated and not empty
+        const guideJson = project.guide_json
+        const isGuideReady = guideJson && 
+                           typeof guideJson === 'object' && 
+                           Object.keys(guideJson).length > 0 &&
+                           guideJson.steps && 
+                           Array.isArray(guideJson.steps) && 
+                           guideJson.steps.length > 0
+
+        console.log(`📊 Guide status check:`, {
+          hasGuideJson: !!guideJson,
+          isObject: typeof guideJson === 'object',
+          keyCount: guideJson ? Object.keys(guideJson).length : 0,
+          hasSteps: !!(guideJson?.steps),
+          stepsCount: guideJson?.steps?.length || 0,
+          isReady: isGuideReady
+        })
+
+        if (isGuideReady) {
+          console.log('✅ Guide data is ready!')
+          setIsGuideDataReady(true)
+          clearInterval(pollInterval)
+        } else {
+          pollAttempts++
+          
+          // If we've been polling for too long, show an error
+          if (pollAttempts >= maxPollAttempts) {
+            console.error('⏰ Polling timeout reached')
+            setError('Guide generation is taking longer than expected. Please try refreshing the page or contact support.')
+            clearInterval(pollInterval)
+          }
+        }
+      } catch (error) {
+        console.error('💥 Unexpected error during polling:', error)
+        pollAttempts++
+        
+        if (pollAttempts >= maxPollAttempts) {
+          setError('An unexpected error occurred. Please try refreshing the page.')
+          clearInterval(pollInterval)
+        }
+      }
+    }
+
+    // Start polling immediately, then every 5 seconds
+    checkGuideReady()
+    pollInterval = setInterval(checkGuideReady, 5000)
+
+    // Cleanup function
+    return () => {
+      if (pollInterval) {
+        clearInterval(pollInterval)
+      }
+    }
+  }, [projectId])
+
+  // Check if both conditions are met to show completion
+  useEffect(() => {
+    if (isVisualComplete && isGuideDataReady && !isComplete) {
+      console.log('🎉 Both visual and data loading complete!')
+      setIsComplete(true)
+    }
+  }, [isVisualComplete, isGuideDataReady, isComplete])
+
+  // Handle error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-green-50 flex items-center justify-center p-4">
+        <div className="max-w-md w-full text-center">
+          <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-8">
+            <div className="text-red-600 text-4xl">⚠️</div>
+          </div>
+
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">
+            Something went wrong
+          </h1>
+          
+          <p className="text-lg text-gray-600 mb-8 leading-relaxed">
+            {error}
+          </p>
+
+          <div className="space-y-4">
+            <Button
+              onClick={() => window.location.reload()}
+              size="lg"
+              className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
+            >
+              Refresh Page
+            </Button>
+            
+            <Button
+              onClick={() => window.location.href = '/'}
+              variant="outline"
+              size="lg"
+              className="text-emerald-600 border-emerald-600 hover:bg-emerald-50 px-8 py-4 text-lg rounded-full"
+            >
+              Go Home
+            </Button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Show completion screen
   if (isComplete) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-green-50 flex items-center justify-center p-4">
@@ -93,6 +242,7 @@ export function GuideCreationScreen({ onComplete }: GuideCreationScreenProps) {
     )
   }
 
+  // Show loading screen
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-green-50 flex items-center justify-center p-4">
       <div className="max-w-md w-full text-center">
@@ -149,7 +299,7 @@ export function GuideCreationScreen({ onComplete }: GuideCreationScreenProps) {
         </div>
 
         {/* Progress Bar */}
-        <div className="space-y-2">
+        <div className="space-y-2 mb-4">
           <Progress 
             value={progress} 
             className="h-3 bg-emerald-100"
@@ -157,6 +307,19 @@ export function GuideCreationScreen({ onComplete }: GuideCreationScreenProps) {
           <p className="text-sm text-emerald-600 font-medium">
             {Math.round(progress)}% complete
           </p>
+        </div>
+
+        {/* Status Message */}
+        <div className="text-sm text-gray-600">
+          {isVisualComplete && !isGuideDataReady && (
+            <div className="flex items-center justify-center space-x-2">
+              <div className="w-4 h-4 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin" />
+              <span>Finalizing your guide...</span>
+            </div>
+          )}
+          {!isVisualComplete && (
+            <span>Processing your preferences...</span>
+          )}
         </div>
       </div>
     </div>
