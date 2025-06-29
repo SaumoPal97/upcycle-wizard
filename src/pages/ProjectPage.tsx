@@ -308,13 +308,6 @@ export function ProjectPage() {
           </Card>
         </div>
       </div>
-
-      {/* Voice Assistant - Available on overview page too */}
-      <VoiceAssistant 
-        project={project} 
-        currentStep={undefined} 
-        allSteps={steps}
-      />
     </div>
   )
 }
