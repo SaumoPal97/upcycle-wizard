@@ -73,7 +73,7 @@ function ProjectCard({ project }: ProjectCardProps) {
 
           {project.environmental_score && (
             <Badge
-              className="absolute top-3 right-12 bg-emerald-100 text-emerald-800 border-emerald-200"
+              className="absolute top-3 left-24 bg-emerald-100 text-emerald-800 border-emerald-200"
               variant="outline"
             >
               <Leaf className="w-3 h-3 mr-1" />
@@ -184,34 +184,6 @@ export function CommunityFeed() {
     }
   }
 
-  if (loading) {
-    return (
-      <section className="py-16 bg-white w-full">
-        <div className="w-full px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Get Inspired by Our Community
-            </h2>
-            <p className="text-xl text-gray-600">
-              Discover amazing transformations from our community of upcycling enthusiasts
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[...Array(4)].map((_, i) => (
-              <Card key={i} className="overflow-hidden">
-                <div className="aspect-square bg-gray-200 animate-pulse" />
-                <CardContent className="p-4">
-                  <div className="h-4 bg-gray-200 rounded animate-pulse mb-2" />
-                  <div className="h-3 bg-gray-200 rounded animate-pulse w-2/3" />
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-    )
-  }
-
   if (error) {
     return (
       <section className="py-16 bg-white w-full">
@@ -239,6 +211,34 @@ export function CommunityFeed() {
                 Try Again
               </Button>
             </div>
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  if (loading) {
+    return (
+      <section className="py-16 bg-white w-full">
+        <div className="w-full px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+              Get Inspired by Our Community
+            </h2>
+            <p className="text-xl text-gray-600">
+              Discover amazing transformations from our community of upcycling enthusiasts
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[...Array(4)].map((_, i) => (
+              <Card key={i} className="overflow-hidden">
+                <div className="aspect-square bg-gray-200 animate-pulse" />
+                <CardContent className="p-4">
+                  <div className="h-4 bg-gray-200 rounded animate-pulse mb-2" />
+                  <div className="h-3 bg-gray-200 rounded animate-pulse w-2/3" />
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </div>
       </section>

@@ -83,7 +83,7 @@ function ProjectCard({ project }: ProjectCardProps) {
 
           {project.environmental_score && (
             <Badge
-              className="absolute top-3 right-12 bg-emerald-100 text-emerald-800 border-emerald-200"
+              className="absolute top-3 left-24 bg-emerald-100 text-emerald-800 border-emerald-200"
               variant="outline"
             >
               <Leaf className="w-3 h-3 mr-1" />
