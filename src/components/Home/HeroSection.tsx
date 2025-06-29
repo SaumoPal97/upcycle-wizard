@@ -104,7 +104,7 @@ export function HeroSection() {
               <div className="w-16 h-16 bg-emerald-600 rounded-full flex items-center justify-center">
                 <Recycle className="w-10 h-10 text-white" />
               </div>
-              <span className="font-bold text-4xl text-emerald-700">Upcycle Wizard</span>
+              <span className="font-bold text-5xl text-emerald-700">Upcycle Wizard</span>
             </div>
           </div>
 
