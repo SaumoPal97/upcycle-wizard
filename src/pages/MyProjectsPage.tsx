@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Search, Plus, Eye, EyeOff, Trash2, Edit } from 'lucide-react'
+import { ArrowLeft, Search, Plus, Eye, EyeOff, Trash2, Edit, Leaf } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
@@ -133,6 +133,14 @@ export function MyProjectsPage() {
   }).length
   const publicProjects = projects.filter(p => p.public).length
   const totalLikes = projects.reduce((sum, p) => sum + (p.likes_count || 0), 0)
+  
+  // Calculate total environmental score for completed projects
+  const totalEnvironmentalScore = projects
+    .filter(p => {
+      const guide = p.guide_json as any
+      return guide && Object.keys(guide).length > 0 && p.environmental_score
+    })
+    .reduce((sum, p) => sum + (p.environmental_score || 0), 0)
 
   const getStatusBadge = (project: Project) => {
     const guide = project.guide_json as any
@@ -217,7 +225,7 @@ export function MyProjectsPage() {
 
       <div className="w-full px-4 py-8">
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-6 mb-8">
           <Card className="bg-white border-emerald-100">
             <CardContent className="p-6 text-center">
               <div className="text-3xl font-bold text-emerald-600 mb-2">{totalProjects}</div>
@@ -243,6 +251,17 @@ export function MyProjectsPage() {
             <CardContent className="p-6 text-center">
               <div className="text-3xl font-bold text-emerald-600 mb-2">{totalLikes}</div>
               <div className="text-emerald-700 font-medium">Total Likes</div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-emerald-100 border-emerald-200">
+            <CardContent className="p-6 text-center">
+              <div className="flex items-center justify-center mb-2">
+                <Leaf className="w-6 h-6 text-emerald-600 mr-2" />
+                <div className="text-3xl font-bold text-emerald-700">{Math.round(totalEnvironmentalScore)}</div>
+              </div>
+              <div className="text-emerald-800 font-medium">Eco Points</div>
+              <div className="text-xs text-emerald-600 mt-1">From completed projects</div>
             </CardContent>
           </Card>
         </div>
@@ -301,6 +320,12 @@ export function MyProjectsPage() {
                             {project.style}
                           </Badge>
                         )}
+                        {project.environmental_score && (
+                          <Badge variant="outline" className="bg-emerald-100 text-emerald-800 border-emerald-200">
+                            <Leaf className="w-3 h-3 mr-1" />
+                            {project.environmental_score} eco points
+                          </Badge>
+                        )}
                         <span className="text-sm text-gray-500">
                           Created {new Date(project.created_at).toLocaleDateString()}
                         </span>
@@ -311,6 +336,15 @@ export function MyProjectsPage() {
 
                     {/* Action Buttons */}
                     <div className="flex items-center space-x-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => navigate(`/project/${project.id}`)}
+                        className="bg-white border-emerald-600 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                      
                       <Button
                         variant="ghost"
                         size="sm"

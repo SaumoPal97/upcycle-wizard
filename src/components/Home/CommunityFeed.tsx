@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Heart, Eye } from 'lucide-react'
+import { Heart, Eye, Leaf } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -71,12 +71,22 @@ function ProjectCard({ project }: ProjectCardProps) {
             </Badge>
           )}
 
+          {project.environmental_score && (
+            <Badge
+              className="absolute top-3 right-12 bg-emerald-100 text-emerald-800 border-emerald-200"
+              variant="outline"
+            >
+              <Leaf className="w-3 h-3 mr-1" />
+              {project.environmental_score}
+            </Badge>
+          )}
+
           <Button
             variant="ghost"
             size="sm"
             onClick={handleLikeClick}
             disabled={loading}
-            className={`absolute top-3 right-3 p-2 rounded-full transition-all duration-200 ${
+            className={`absolute bottom-3 right-3 p-2 rounded-full transition-all duration-200 ${
               isLiked 
                 ? 'bg-red-50 hover:bg-red-100 text-red-600' 
                 : 'bg-white/80 hover:bg-white text-gray-600 hover:text-red-600'
@@ -172,7 +182,7 @@ export function CommunityFeed() {
       created_at: '2024-01-15T10:00:00Z',
       estimated_time: null,
       budget: null,
-      environmental_score: null,
+      environmental_score: 85,
       users: {
         full_name: 'Sarah Johnson',
         email: 'sarah.johnson@example.com'
@@ -193,7 +203,7 @@ export function CommunityFeed() {
       created_at: '2024-01-14T10:00:00Z',
       estimated_time: null,
       budget: null,
-      environmental_score: null,
+      environmental_score: 92,
       users: {
         full_name: 'Mike Rodriguez',
         email: 'mike.rodriguez@example.com'
@@ -214,7 +224,7 @@ export function CommunityFeed() {
       created_at: '2024-01-13T10:00:00Z',
       estimated_time: null,
       budget: null,
-      environmental_score: null,
+      environmental_score: 78,
       users: {
         full_name: 'Emma Chen',
         email: 'emma.chen@example.com'
@@ -235,7 +245,7 @@ export function CommunityFeed() {
       created_at: '2024-01-12T10:00:00Z',
       estimated_time: null,
       budget: null,
-      environmental_score: null,
+      environmental_score: 88,
       users: {
         full_name: 'Alex Thompson',
         email: 'alex.thompson@example.com'

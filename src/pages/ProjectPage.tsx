@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Clock, BarChart3, DollarSign, Play, CheckCircle } from 'lucide-react'
+import { ArrowLeft, Clock, BarChart3, DollarSign, Play, CheckCircle, Leaf } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
@@ -213,7 +213,7 @@ export function ProjectPage() {
               </p>
 
               {/* Stats Grid */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-6 mb-8">
                 <div className="text-center">
                   <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-2">
                     <Clock className="w-6 h-6 text-emerald-600" />
@@ -242,8 +242,16 @@ export function ProjectPage() {
                   <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-2">
                     <DollarSign className="w-6 h-6 text-emerald-600" />
                   </div>
-                  <div className="font-bold text-gray-900">${project.budget || 1000}</div>
+                  <div className="font-bold text-gray-900">${project.budget || 150}</div>
                   <div className="text-sm text-gray-600">Budget</div>
+                </div>
+
+                <div className="text-center">
+                  <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <Leaf className="w-6 h-6 text-emerald-600" />
+                  </div>
+                  <div className="font-bold text-emerald-900">{project.environmental_score || 85}</div>
+                  <div className="text-sm text-gray-600">Eco Score</div>
                 </div>
               </div>
 
