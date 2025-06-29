@@ -36,10 +36,13 @@ export function SponsorsSection() {
               title="Database powered by Supabase"
             >
               <img
-                src="https://raw.githubusercontent.com/kickiniteasy/bolt-hackathon-badge/main/src/public/supabase/wordmark-color.svg"
+                src="https://raw.githubusercontent.com/kickiniteasy/bolt-hackathon-badge/main/src/public/supabase/logo-color.svg"
                 alt="Supabase"
-                className="h-4 md:h-5"
+                className="w-6 h-6 md:w-8 md:h-8"
               />
+              <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900 transition-colors duration-200">
+                Supabase
+              </span>
               <ExternalLink className="w-3 h-3 text-gray-400 group-hover:text-gray-600 transition-colors duration-200" />
             </a>
 
