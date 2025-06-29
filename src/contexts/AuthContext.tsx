@@ -61,7 +61,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = async () => {
     const { error } = await supabase.auth.signOut()
-    if (error) throw error
+    // Don't throw error if session is already missing or invalid
+    // The onAuthStateChange listener will handle updating the auth state
+    if (error && error.message !== 'Session from session_id claim in JWT does not exist') {
+      throw error
+    }
   }
 
   const value = {
