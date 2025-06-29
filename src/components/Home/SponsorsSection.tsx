@@ -35,10 +35,9 @@ export function SponsorsSection() {
   ]
 
   return (
-    <div className="w-full px-4 py-3">
+    <div className="w-full bg-gradient-to-br from-emerald-50 via-white to-green-50 px-4 py-6">
       <div className="flex justify-end">
-        <div className="flex items-center space-x-2 text-xs text-gray-500">
-          <span className="mr-3">Powered by:</span>
+        <div className="flex items-center space-x-6">
           {sponsors.map((sponsor, index) => (
             <a
               key={sponsor.name}
@@ -51,7 +50,7 @@ export function SponsorsSection() {
               <img
                 src={sponsor.logo}
                 alt={sponsor.name}
-                className="w-8 h-8 hover:scale-110 transition-transform duration-200"
+                className="w-24 h-24 hover:scale-110 transition-transform duration-200"
               />
             </a>
           ))}
