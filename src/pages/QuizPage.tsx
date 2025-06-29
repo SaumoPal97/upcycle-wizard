@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { QuizProgress } from '@/components/Quiz/QuizProgress'
 import { QuizNavigation } from '@/components/Quiz/QuizNavigation'
+import { GuideCreationScreen } from '@/components/Quiz/GuideCreationScreen'
 import { PhotoUploadStep } from '@/components/Quiz/Steps/PhotoUploadStep'
 import { FurnitureTypeStep } from '@/components/Quiz/Steps/FurnitureTypeStep'
 import { SizeStep } from '@/components/Quiz/Steps/SizeStep'
@@ -36,6 +37,8 @@ export function QuizPage() {
   } = useQuizState()
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [showGuideCreation, setShowGuideCreation] = useState(false)
+  const [generatedProjectId, setGeneratedProjectId] = useState<string | null>(null)
 
   // Check for initial prompt from home page
   useEffect(() => {
@@ -87,7 +90,46 @@ export function QuizPage() {
       }
 
       console.log('Project created successfully:', project.id)
+      setGeneratedProjectId(project.id)
 
+      // Show the guide creation screen
+      setShowGuideCreation(true)
+
+      // Start the guide generation in the background
+      generateGuideInBackground(project.id)
+
+    } catch (error) {
+      console.error('Error submitting quiz:', error)
+      
+      let userFriendlyMessage = 'Failed to generate your upcycling guide. '
+      
+      if (error.message.includes('AI service is not properly configured') || 
+          error.message.includes('MISSING_API_KEY')) {
+        userFriendlyMessage += 'Our AI service needs to be configured. Please contact support or try again later.'
+      } else if (error.message.includes('rate limit') || 
+                 error.message.includes('Too many requests')) {
+        userFriendlyMessage += 'Too many people are using the service right now. Please wait a few minutes and try again.'
+      } else if (error.message.includes('AI service authentication') || 
+                 error.message.includes('INVALID_API_KEY')) {
+        userFriendlyMessage += 'There\'s an issue with our AI service authentication. Please contact support.'
+      } else if (error.message.includes('temporarily unavailable') || 
+                 error.message.includes('EXTERNAL_API_ERROR')) {
+        userFriendlyMessage += 'Our AI service is temporarily down. Please try again in a few minutes.'
+      } else if (error.message.includes('Database') || 
+                 error.message.includes('DATABASE_ERROR')) {
+        userFriendlyMessage += 'There was a database issue. Please try again.'
+      } else {
+        userFriendlyMessage += 'Please try again or contact support if the problem persists.'
+      }
+      
+      setError(userFriendlyMessage)
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const generateGuideInBackground = async (projectId: string) => {
+    try {
       // Call edge function to generate guide
       const functionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-guide`
       console.log('Calling edge function:', functionUrl)
@@ -99,7 +141,7 @@ export function QuizPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          projectId: project.id,
+          projectId,
           quizData,
         }),
       })
@@ -154,36 +196,25 @@ export function QuizPage() {
       const result = await response.json()
       console.log('Guide generation successful:', result)
       
-      // Navigate to the generated project
-      navigate(`/project/${project.id}`)
     } catch (error) {
-      console.error('Error submitting quiz:', error)
-      
-      let userFriendlyMessage = 'Failed to generate your upcycling guide. '
-      
-      if (error.message.includes('AI service is not properly configured') || 
-          error.message.includes('MISSING_API_KEY')) {
-        userFriendlyMessage += 'Our AI service needs to be configured. Please contact support or try again later.'
-      } else if (error.message.includes('rate limit') || 
-                 error.message.includes('Too many requests')) {
-        userFriendlyMessage += 'Too many people are using the service right now. Please wait a few minutes and try again.'
-      } else if (error.message.includes('AI service authentication') || 
-                 error.message.includes('INVALID_API_KEY')) {
-        userFriendlyMessage += 'There\'s an issue with our AI service authentication. Please contact support.'
-      } else if (error.message.includes('temporarily unavailable') || 
-                 error.message.includes('EXTERNAL_API_ERROR')) {
-        userFriendlyMessage += 'Our AI service is temporarily down. Please try again in a few minutes.'
-      } else if (error.message.includes('Database') || 
-                 error.message.includes('DATABASE_ERROR')) {
-        userFriendlyMessage += 'There was a database issue. Please try again.'
-      } else {
-        userFriendlyMessage += 'Please try again or contact support if the problem persists.'
-      }
-      
-      setError(userFriendlyMessage)
-    } finally {
-      setSubmitting(false)
+      console.error('Background guide generation failed:', error)
+      // Don't show error to user since they're already on the loading screen
+      // The guide creation screen will handle the completion regardless
     }
+  }
+
+  const handleGuideCreationComplete = () => {
+    if (generatedProjectId) {
+      navigate(`/project/${generatedProjectId}`)
+    } else {
+      // Fallback to home page if no project ID
+      navigate('/')
+    }
+  }
+
+  // Show guide creation screen if submitting
+  if (showGuideCreation) {
+    return <GuideCreationScreen onComplete={handleGuideCreationComplete} />
   }
 
   const renderCurrentStep = () => {
