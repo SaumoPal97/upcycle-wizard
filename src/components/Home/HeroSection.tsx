@@ -54,7 +54,7 @@ export function HeroSection() {
             </span>
           </h1>
           
-          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto leading-relaxed">
             Upload a photo, answer a few questions, and get a personalized 
             upcycling guide that turns your everyday items into something extraordinary—whether it's furniture, décor, or forgotten treasures waiting for a second life.
           </p>
@@ -87,7 +87,7 @@ export function HeroSection() {
             size="lg"
             className="text-emerald-600 border-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group"
           >
-            {user ? 'Sign In to Start' : 'Sign In to Start'}
+            {user ? 'Start Your Upcycling Journey' : 'Sign In to Start'}
             <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </Button>
         </div>
