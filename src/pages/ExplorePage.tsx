@@ -232,14 +232,6 @@ export function ExplorePage() {
               </Button>
               <h1 className="text-3xl font-bold text-gray-900">Explore Projects</h1>
             </div>
-            
-            {!user && (
-              <div className="flex items-center space-x-2">
-                <Button variant="outline" asChild className="text-emerald-600 border-emerald-600 hover:bg-emerald-50">
-                  <Link to="/auth">Sign In</Link>
-                </Button>
-              </div>
-            )}
           </div>
 
           <div className="flex items-center space-x-4">
