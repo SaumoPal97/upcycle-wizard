@@ -70,9 +70,9 @@ export function Header() {
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end">
                 <DropdownMenuItem asChild>
-                  <Link to="/profile" className="flex items-center">
+                  <Link to="/my-projects" className="flex items-center">
                     <User className="mr-2 h-4 w-4" />
-                    Profile
+                    My Projects
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={signOut} className="flex items-center">
