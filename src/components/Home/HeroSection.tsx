@@ -76,7 +76,7 @@ export function HeroSection() {
       {/* Sponsor logos in top right with "Powered by" text */}
       <div className="absolute top-6 right-6 z-10 flex items-center space-x-4">
         <span className="text-gray-600 text-sm font-medium">Powered by:</span>
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-2">
           {sponsors.map((sponsor) => (
             <a
               key={sponsor.name}
