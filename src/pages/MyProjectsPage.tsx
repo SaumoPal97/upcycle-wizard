@@ -326,9 +326,9 @@ export function MyProjectsPage() {
                         {updatingProjects.has(project.id) ? (
                           <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
                         ) : project.public ? (
-                          <EyeOff className="w-4 h-4" />
+                          <EyeOff className="text-emerald-600 hover:text-emerald-600 w-4 h-4" />
                         ) : (
-                          <Eye className="w-4 h-4" />
+                          <Eye className="text-emerald-600 hover:text-emerald-600 w-4 h-4" />
                         )}
                       </Button>
                       
