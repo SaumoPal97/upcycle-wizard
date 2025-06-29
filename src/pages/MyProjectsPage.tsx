@@ -201,7 +201,7 @@ export function MyProjectsPage() {
             </div>
             
             <div className="flex items-center space-x-4">
-              <Button asChild className="bg-emerald-600 hover:bg-emerald-700 text-white">
+              <Button asChild className="bg-emerald-600 hover:bg-emerald-600 text-white">
                 <Link to="/quiz" className="flex items-center space-x-2">
                   <Plus className="w-4 h-4" />
                   <span>New Project</span>
