@@ -26,6 +26,22 @@ export function SponsorsSection() {
               </span>
               <ExternalLink className="w-3 h-3 text-gray-400 group-hover:text-gray-600 transition-colors duration-200" />
             </a>
+
+            {/* ElevenLabs Badge */}
+            <a
+              href="https://elevenlabs.io/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex items-center space-x-2 hover:opacity-80 transition-opacity duration-200"
+              title="Voice AI powered by ElevenLabs"
+            >
+              <img
+                src="https://raw.githubusercontent.com/kickiniteasy/bolt-hackathon-badge/main/src/public/elevenlabs/wordmark-black.svg"
+                alt="ElevenLabs"
+                className="h-4 md:h-5"
+              />
+              <ExternalLink className="w-3 h-3 text-gray-400 group-hover:text-gray-600 transition-colors duration-200" />
+            </a>
             
             {/* Bolt.new Badge */}
             <a
