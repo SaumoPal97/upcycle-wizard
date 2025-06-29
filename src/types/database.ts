@@ -215,6 +215,7 @@ export interface GuideStep {
   materials_needed: string[]
   image_url?: string
   estimated_time?: string
+  image_prompt?: string
 }
 
 export interface GuideData {
