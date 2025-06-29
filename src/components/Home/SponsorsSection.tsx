@@ -42,6 +42,22 @@ export function SponsorsSection() {
               />
               <ExternalLink className="w-3 h-3 text-gray-400 group-hover:text-gray-600 transition-colors duration-200" />
             </a>
+
+            {/* Netlify Badge */}
+            <a
+              href="https://www.netlify.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex items-center space-x-2 hover:opacity-80 transition-opacity duration-200"
+              title="Deployed on Netlify"
+            >
+              <img
+                src="https://raw.githubusercontent.com/kickiniteasy/bolt-hackathon-badge/main/src/public/netlify/wordmark-color.svg"
+                alt="Netlify"
+                className="h-4 md:h-5"
+              />
+              <ExternalLink className="w-3 h-3 text-gray-400 group-hover:text-gray-600 transition-colors duration-200" />
+            </a>
             
             {/* Bolt.new Badge */}
             <a
