@@ -212,6 +212,17 @@ export function ProjectPage() {
                 {guide?.overview || 'Transform your dresser into a stunning bohemian piece with earthy tones, decorative hardware, and artistic details.'}
               </p>
 
+              {/* Cover Image */}
+              {project.cover_image_url && (
+                <div className="w-full aspect-video mb-8 overflow-hidden rounded-lg border border-gray-200">
+                  <img
+                    src={project.cover_image_url}
+                    alt={project.title}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
+
               {/* Stats Grid */}
               <div className="grid grid-cols-2 md:grid-cols-5 gap-6 mb-8">
                 <div className="text-center">
