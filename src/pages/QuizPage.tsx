@@ -62,6 +62,12 @@ export function QuizPage() {
     }
   }
 
+  // Helper function to capitalize the first letter of a string
+  const capitalizeFirstLetter = (str: string) => {
+    if (!str) return str
+    return str.charAt(0).toUpperCase() + str.slice(1)
+  }
+
   const handleSubmit = async () => {
     if (!user || !canSubmit()) return
 
@@ -71,12 +77,14 @@ export function QuizPage() {
     try {
       console.log('Starting quiz submission for user:', user.id)
       
-      // Create project in database
+      // Create project in database with capitalized furniture type
+      const capitalizedFurnitureType = capitalizeFirstLetter(quizData.furnitureType)
+      
       const { data: project, error: projectError } = await supabase
         .from('projects')
         .insert({
           user_id: user.id,
-          title: `${quizData.furnitureType} Upcycling Project`,
+          title: `${capitalizedFurnitureType} Upcycling Project`,
           quiz_data: quizData,
           guide_json: {},
           public: false,
