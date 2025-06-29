@@ -73,7 +73,17 @@ export function HeroSection() {
     <section className="relative overflow-hidden bg-gradient-to-br from-emerald-50 via-white to-green-50 py-20 w-full">
       <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=%2260%22 height=%2260%22 viewBox=%220 0 60 60%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cg fill=%22none%22 fill-rule=%22evenodd%22%3E%3Cg fill=%22%2310b981%22 fill-opacity=%220.05%22%3E%3Ccircle cx=%2230%22 cy=%2230%22 r=%222%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-50"></div>
       
-      {/* Sponsor logos in top right */}
+      {/* Upcycle Wizard brand in top left */}
+      <div className="absolute top-6 left-6 z-10">
+        <div className="flex items-center space-x-2">
+          <div className="w-8 h-8 bg-emerald-600 rounded-full flex items-center justify-center">
+            <Recycle className="w-5 h-5 text-white" />
+          </div>
+          <span className="font-bold text-xl text-emerald-700">Upcycle Wizard</span>
+        </div>
+      </div>
+
+      {/* Sponsor logos in top right with margin from brand */}
       <div className="absolute top-6 right-6 z-10">
         <div className="flex items-center space-x-4">
           {sponsors.map((sponsor) => (
@@ -98,8 +108,8 @@ export function HeroSection() {
       <div className="w-full px-4 text-center relative">
         <div className="max-w-4xl mx-auto">
           <div className="inline-flex items-center space-x-2 bg-emerald-100 text-emerald-800 px-4 py-2 rounded-full mb-8 text-sm font-medium">
-            <Recycle className="w-4 h-4" />
-            <span>♻️ AI-Powered Upcycling Made Simple</span>
+            <Sparkles className="w-4 h-4" />
+            <span>AI-Powered Upcycling Made Simple</span>
           </div>
           
           <h1 className="text-5xl md:text-7xl font-bold text-gray-900 mb-6 leading-tight">
