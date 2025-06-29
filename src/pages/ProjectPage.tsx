@@ -143,7 +143,11 @@ export function ProjectPage() {
           onStepChange={setCurrentStepIndex}
           onBackToOverview={() => setCurrentView('overview')}
         />
-        <VoiceAssistant project={project} currentStep={steps[currentStepIndex]} />
+        <VoiceAssistant 
+          project={project} 
+          currentStep={steps[currentStepIndex]} 
+          allSteps={steps}
+        />
         <FeedbackModal
           isOpen={showFeedback}
           onClose={() => setShowFeedback(false)}
@@ -270,6 +274,13 @@ export function ProjectPage() {
           </Card>
         </div>
       </div>
+
+      {/* Voice Assistant - Available on overview page too */}
+      <VoiceAssistant 
+        project={project} 
+        currentStep={undefined} 
+        allSteps={steps}
+      />
     </div>
   )
 }

@@ -10,9 +10,10 @@ type Step = Database['public']['Tables']['steps']['Row']
 interface VoiceAssistantProps {
   project: Project
   currentStep?: Step
+  allSteps: Step[]
 }
 
-export function VoiceAssistant({ project, currentStep }: VoiceAssistantProps) {
+export function VoiceAssistant({ project, currentStep, allSteps }: VoiceAssistantProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [isListening, setIsListening] = useState(false)
   const [isSpeaking, setIsSpeaking] = useState(false)
@@ -85,7 +86,7 @@ export function VoiceAssistant({ project, currentStep }: VoiceAssistantProps) {
     
     try {
       // Generate response based on the query and current context
-      const contextualResponse = generateContextualResponse(query, project, currentStep)
+      const contextualResponse = generateContextualResponse(query, project, currentStep, allSteps)
       setResponse(contextualResponse)
       
       // Convert text to speech using ElevenLabs
@@ -175,21 +176,73 @@ export function VoiceAssistant({ project, currentStep }: VoiceAssistantProps) {
     }
   }
 
-  const generateContextualResponse = (query: string, project: Project, currentStep?: Step): string => {
+  const generateContextualResponse = (query: string, project: Project, currentStep?: Step, allSteps: Step[] = []): string => {
     const lowerQuery = query.toLowerCase()
     
-    // Step-specific responses
-    if (currentStep) {
+    // Extract step numbers from query (e.g., "step 3", "third step", "step three")
+    const stepNumberMatch = lowerQuery.match(/step\s+(\d+|one|two|three|four|five|six|seven|eight|nine|ten)/i)
+    const ordinalMatch = lowerQuery.match(/(first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth)\s+step/i)
+    
+    let targetStep: Step | undefined = undefined
+    let stepNumber: number | undefined = undefined
+    
+    if (stepNumberMatch) {
+      const stepText = stepNumberMatch[1].toLowerCase()
+      const numberMap: { [key: string]: number } = {
+        'one': 1, 'two': 2, 'three': 3, 'four': 4, 'five': 5,
+        'six': 6, 'seven': 7, 'eight': 8, 'nine': 9, 'ten': 10
+      }
+      stepNumber = isNaN(parseInt(stepText)) ? numberMap[stepText] : parseInt(stepText)
+    } else if (ordinalMatch) {
+      const ordinalText = ordinalMatch[1].toLowerCase()
+      const ordinalMap: { [key: string]: number } = {
+        'first': 1, 'second': 2, 'third': 3, 'fourth': 4, 'fifth': 5,
+        'sixth': 6, 'seventh': 7, 'eighth': 8, 'ninth': 9, 'tenth': 10
+      }
+      stepNumber = ordinalMap[ordinalText]
+    }
+    
+    if (stepNumber && stepNumber <= allSteps.length) {
+      targetStep = allSteps.find(step => step.step_number === stepNumber)
+    }
+
+    // Specific step queries
+    if (targetStep) {
       if (lowerQuery.includes('what') && (lowerQuery.includes('do') || lowerQuery.includes('next'))) {
-        return `For this step, you need to ${currentStep.description}. The estimated time is ${currentStep.estimated_time || 'about 30 minutes'}.`
+        return `For step ${targetStep.step_number}, "${targetStep.title}", you need to ${targetStep.description}. The estimated time is ${targetStep.estimated_time || 'about 30 minutes'}.`
       }
       
       if (lowerQuery.includes('tools') || lowerQuery.includes('need')) {
+        const tools = targetStep.tools_needed.join(', ')
+        return `For step ${targetStep.step_number}, "${targetStep.title}", you'll need these tools: ${tools}.`
+      }
+      
+      if (lowerQuery.includes('materials')) {
+        const materials = targetStep.materials_needed.join(', ')
+        return `For step ${targetStep.step_number}, the materials you'll need are: ${materials}.`
+      }
+      
+      if (lowerQuery.includes('time') || lowerQuery.includes('long')) {
+        return `Step ${targetStep.step_number} should take approximately ${targetStep.estimated_time || '30 minutes'} to complete.`
+      }
+    }
+
+    // Current step-specific responses
+    if (currentStep) {
+      if (lowerQuery.includes('current') || (lowerQuery.includes('this') && lowerQuery.includes('step'))) {
+        return `You're currently on step ${currentStep.step_number}: "${currentStep.title}". ${currentStep.description}`
+      }
+      
+      if (lowerQuery.includes('what') && (lowerQuery.includes('do') || lowerQuery.includes('next')) && !targetStep) {
+        return `For this step, you need to ${currentStep.description}. The estimated time is ${currentStep.estimated_time || 'about 30 minutes'}.`
+      }
+      
+      if (lowerQuery.includes('tools') && !targetStep) {
         const tools = currentStep.tools_needed.join(', ')
         return `For this step, you'll need these tools: ${tools}.`
       }
       
-      if (lowerQuery.includes('materials')) {
+      if (lowerQuery.includes('materials') && !targetStep) {
         const materials = currentStep.materials_needed.join(', ')
         return `The materials you'll need are: ${materials}.`
       }
@@ -202,7 +255,40 @@ export function VoiceAssistant({ project, currentStep }: VoiceAssistantProps) {
         return `Let me repeat the instructions for this step: ${currentStep.description}`
       }
     }
-    
+
+    // Overview and navigation queries
+    if (lowerQuery.includes('overview') || lowerQuery.includes('summary')) {
+      const stepsList = allSteps.map(step => `Step ${step.step_number}: ${step.title}`).join(', ')
+      return `Here's an overview of all ${allSteps.length} steps: ${stepsList}. You can ask me about any specific step by saying "tell me about step" followed by the number.`
+    }
+
+    if (lowerQuery.includes('next step') && currentStep) {
+      const nextStep = allSteps.find(step => step.step_number === currentStep.step_number + 1)
+      if (nextStep) {
+        return `The next step is step ${nextStep.step_number}: "${nextStep.title}". ${nextStep.description}`
+      } else {
+        return `You're on the final step! Once you complete this step, your project will be finished.`
+      }
+    }
+
+    if (lowerQuery.includes('previous step') && currentStep) {
+      const prevStep = allSteps.find(step => step.step_number === currentStep.step_number - 1)
+      if (prevStep) {
+        return `The previous step was step ${prevStep.step_number}: "${prevStep.title}". ${prevStep.description}`
+      } else {
+        return `You're on the first step of the project.`
+      }
+    }
+
+    if (lowerQuery.includes('how many steps') || lowerQuery.includes('total steps')) {
+      return `This project has ${allSteps.length} steps in total. You can ask me about any specific step by number.`
+    }
+
+    if (lowerQuery.includes('list') && lowerQuery.includes('steps')) {
+      const stepsList = allSteps.map(step => `Step ${step.step_number}: ${step.title} (${step.estimated_time || '30 minutes'})`).join('. ')
+      return `Here are all the steps: ${stepsList}`
+    }
+
     // Project-specific responses
     const guide = project.guide_json as any
     
@@ -218,13 +304,8 @@ export function VoiceAssistant({ project, currentStep }: VoiceAssistantProps) {
       return `The estimated budget for this project is $${project.budget || 'around 100 to 500'}.`
     }
     
-    if (lowerQuery.includes('steps') || lowerQuery.includes('many')) {
-      const stepCount = guide?.steps?.length || 'several'
-      return `This project has ${stepCount} main steps to complete.`
-    }
-    
     if (lowerQuery.includes('help') || lowerQuery.includes('stuck')) {
-      return "I'm here to help! You can ask me about the current step, what tools you need, how long something takes, or any other questions about your project. Just tap the microphone and ask away!"
+      return "I'm here to help! You can ask me about any step by number, the current step, what tools you need, how long something takes, or get an overview of the entire project. Just tap the microphone and ask away!"
     }
     
     if (lowerQuery.includes('safety') || lowerQuery.includes('safe')) {
@@ -232,7 +313,7 @@ export function VoiceAssistant({ project, currentStep }: VoiceAssistantProps) {
     }
     
     // Default responses
-    return "I can help you with information about your current step, tools needed, materials, timing, or general project questions. What would you like to know?"
+    return "I can help you with information about any step in your guide, tools needed, materials, timing, or general project questions. Try asking about a specific step number, like 'What do I do in step 3?' or 'What tools do I need for step 2?'"
   }
 
   const stopSpeaking = () => {
@@ -276,16 +357,16 @@ export function VoiceAssistant({ project, currentStep }: VoiceAssistantProps) {
                 size="sm"
                 variant="ghost"
                 onClick={stopSpeaking}
-                className="bg-white border-emerald-600 hover:border-emerald-600 p-1 h-8 w-8 hover:bg-red-50"
+                className="p-1 h-8 w-8 hover:bg-red-50"
               >
-                <VolumeX className="bg-white border-emerald-600 hover:border-emerald-600 w-4 h-4 text-red-600" />
+                <VolumeX className="w-4 h-4 text-red-600" />
               </Button>
             )}
             <Button
               size="sm"
               variant="ghost"
               onClick={() => setIsOpen(false)}
-              className="bg-white border-emerald-600 hover:border-emerald-600 p-1 h-8 w-8 hover:bg-gray-100"
+              className="p-1 h-8 w-8 hover:bg-gray-100"
             >
               <X className="w-4 h-4" />
             </Button>
@@ -305,7 +386,7 @@ export function VoiceAssistant({ project, currentStep }: VoiceAssistantProps) {
             }`}
           >
             {isListening ? (
-              <MicOff className="bg-white w-8 h-8 text-white" />
+              <MicOff className="w-8 h-8 text-white" />
             ) : (
               <Mic className="w-8 h-8 text-white" />
             )}
@@ -351,7 +432,7 @@ export function VoiceAssistant({ project, currentStep }: VoiceAssistantProps) {
         )}
 
         <p className="text-xs text-gray-500 text-center">
-          Ask me anything about your project!
+          Ask me about any step, tools, materials, or project details!
         </p>
       </CardContent>
     </Card>
