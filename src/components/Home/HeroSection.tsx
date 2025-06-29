@@ -74,7 +74,7 @@ export function HeroSection() {
       <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=%2260%22 height=%2260%22 viewBox=%220 0 60 60%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cg fill=%22none%22 fill-rule=%22evenodd%22%3E%3Cg fill=%22%2310b981%22 fill-opacity=%220.05%22%3E%3Ccircle cx=%2230%22 cy=%2230%22 r=%222%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-50"></div>
       
       {/* Sponsor logos in top right with "Powered by" text */}
-      <div className="absolute top-6 right-6 z-10 flex items-center space-x-4">
+      <div className="absolute top-6 right-6 z-10 flex items-center space-x-2">
         <span className="text-gray-600 text-sm font-medium">Powered by:</span>
         <div className="flex items-center space-x-2">
           {sponsors.map((sponsor) => (
