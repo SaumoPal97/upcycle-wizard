@@ -6,9 +6,109 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { supabase } from '@/lib/supabase'
+import { useLikeProject } from '@/hooks/useLikeProject'
 import { Database } from '@/types/database'
 
 type Project = Database['public']['Tables']['projects']['Row']
+
+interface ProjectCardProps {
+  project: Project
+}
+
+function ProjectCard({ project }: ProjectCardProps) {
+  const { isLiked, likesCount, toggleLike, loading } = useLikeProject(
+    project.id, 
+    project.likes_count || 0
+  )
+
+  const handleLikeClick = (e: React.MouseEvent) => {
+    e.preventDefault() // Prevent navigation when clicking the heart
+    e.stopPropagation()
+    toggleLike()
+  }
+
+  return (
+    <Card className="group overflow-hidden hover:shadow-lg transition-shadow duration-300">
+      <Link to={`/project/${project.id}`}>
+        <div className="aspect-square relative overflow-hidden bg-gray-100">
+          {project.cover_image_url ? (
+            <img
+              src={project.cover_image_url}
+              alt={project.title}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-emerald-100 to-green-100 flex items-center justify-center">
+              <Eye className="w-12 h-12 text-emerald-400" />
+            </div>
+          )}
+          
+          {project.difficulty && (
+            <Badge
+              className="absolute top-3 left-3"
+              variant={
+                project.difficulty === 'Beginner'
+                  ? 'default'
+                  : project.difficulty === 'Intermediate'
+                  ? 'secondary'
+                  : 'destructive'
+              }
+            >
+              {project.difficulty}
+            </Badge>
+          )}
+
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleLikeClick}
+            disabled={loading}
+            className={`absolute top-3 right-3 p-2 rounded-full transition-all duration-200 ${
+              isLiked 
+                ? 'bg-red-50 hover:bg-red-100 text-red-600' 
+                : 'bg-white/80 hover:bg-white text-gray-600 hover:text-red-600'
+            }`}
+          >
+            <Heart 
+              className={`w-4 h-4 transition-all duration-200 ${
+                isLiked ? 'fill-current' : ''
+              }`} 
+            />
+          </Button>
+        </div>
+        
+        <CardContent className="p-4">
+          <h3 className="font-semibold text-lg mb-2 group-hover:text-emerald-600 transition-colors">
+            {project.title}
+          </h3>
+          
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex space-x-2">
+              {project.style && (
+                <Badge variant="outline" className="text-xs">
+                  {project.style}
+                </Badge>
+              )}
+              {project.room && (
+                <Badge variant="outline" className="text-xs">
+                  {project.room}
+                </Badge>
+              )}
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between text-sm text-gray-500">
+            <span>by Mike R.</span>
+            <div className="flex items-center space-x-1">
+              <Heart className={`w-4 h-4 ${isLiked ? 'text-red-600' : ''}`} />
+              <span>{likesCount}</span>
+            </div>
+          </div>
+        </CardContent>
+      </Link>
+    </Card>
+  )
+}
 
 export function ExplorePage() {
   const [projects, setProjects] = useState<Project[]>([])
@@ -205,71 +305,7 @@ export function ExplorePage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredProjects.map((project) => (
-              <Card key={project.id} className="group overflow-hidden hover:shadow-lg transition-shadow duration-300">
-                <Link to={`/project/${project.id}`}>
-                  <div className="aspect-square relative overflow-hidden bg-gray-100">
-                    {project.cover_image_url ? (
-                      <img
-                        src={project.cover_image_url}
-                        alt={project.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-emerald-100 to-green-100 flex items-center justify-center">
-                        <Eye className="w-12 h-12 text-emerald-400" />
-                      </div>
-                    )}
-                    
-                    {project.difficulty && (
-                      <Badge
-                        className="absolute top-3 left-3"
-                        variant={
-                          project.difficulty === 'Beginner'
-                            ? 'default'
-                            : project.difficulty === 'Intermediate'
-                            ? 'secondary'
-                            : 'destructive'
-                        }
-                      >
-                        {project.difficulty}
-                      </Badge>
-                    )}
-
-                    <button className="absolute top-3 right-3 p-2 bg-white/80 rounded-full hover:bg-white transition-colors">
-                      <Heart className="w-4 h-4 text-gray-600" />
-                    </button>
-                  </div>
-                  
-                  <CardContent className="p-4">
-                    <h3 className="font-semibold text-lg mb-2 group-hover:text-emerald-600 transition-colors">
-                      {project.title}
-                    </h3>
-                    
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex space-x-2">
-                        {project.style && (
-                          <Badge variant="outline" className="text-xs">
-                            {project.style}
-                          </Badge>
-                        )}
-                        {project.room && (
-                          <Badge variant="outline" className="text-xs">
-                            {project.room}
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between text-sm text-gray-500">
-                      <span>by Mike R.</span>
-                      <div className="flex items-center space-x-1">
-                        <Heart className="w-4 h-4" />
-                        <span>{project.likes_count || 0}</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Link>
-              </Card>
+              <ProjectCard key={project.id} project={project} />
             ))}
           </div>
         )}
