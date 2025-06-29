@@ -3,10 +3,10 @@ import { X, Upload, Star } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
-import { Input } from '@/components/ui/input'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import { Database } from '@/types/database'
+import { toast } from 'sonner'
 
 type Project = Database['public']['Tables']['projects']['Row']
 
@@ -14,9 +14,10 @@ interface FeedbackModalProps {
   isOpen: boolean
   onClose: () => void
   project: Project
+  onFeedbackSubmitted?: () => void
 }
 
-export function FeedbackModal({ isOpen, onClose, project }: FeedbackModalProps) {
+export function FeedbackModal({ isOpen, onClose, project, onFeedbackSubmitted }: FeedbackModalProps) {
   const [rating, setRating] = useState(0)
   const [feedback, setFeedback] = useState('')
   const [uploadedImage, setUploadedImage] = useState<string | null>(null)
@@ -47,7 +48,7 @@ export function FeedbackModal({ isOpen, onClose, project }: FeedbackModalProps) 
       setUploadedImage(publicUrl)
     } catch (error) {
       console.error('Upload error:', error)
-      alert('Failed to upload image')
+      toast.error('Failed to upload image')
     } finally {
       setUploading(false)
     }
@@ -58,22 +59,33 @@ export function FeedbackModal({ isOpen, onClose, project }: FeedbackModalProps) 
 
     setSubmitting(true)
     try {
-      // Here you would typically save the feedback to your database
-      // For now, we'll just log it and close the modal
-      console.log('Feedback submitted:', {
-        projectId: project.id,
-        userId: user.id,
-        rating,
-        feedback,
-        completedImage: uploadedImage
-      })
+      // Insert feedback into database
+      const { error } = await supabase
+        .from('feedback')
+        .insert({
+          user_id: user.id,
+          project_id: project.id,
+          rating,
+          feedback_text: feedback.trim() || null,
+          completed_image_url: uploadedImage,
+        })
 
-      // You could add a feedback table to your database and insert the data here
+      if (error) throw error
+
+      toast.success('Thank you for your feedback!')
+      
+      // Reset form
+      setRating(0)
+      setFeedback('')
+      setUploadedImage(null)
+      
+      // Notify parent component
+      onFeedbackSubmitted?.()
       
       onClose()
     } catch (error) {
       console.error('Error submitting feedback:', error)
-      alert('Failed to submit feedback')
+      toast.error('Failed to submit feedback')
     } finally {
       setSubmitting(false)
     }

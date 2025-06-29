@@ -158,6 +158,35 @@ export interface Database {
           created_at?: string
         }
       }
+      feedback: {
+        Row: {
+          id: string
+          user_id: string
+          project_id: string
+          rating: number
+          feedback_text: string | null
+          completed_image_url: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          project_id: string
+          rating: number
+          feedback_text?: string | null
+          completed_image_url?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          project_id?: string
+          rating?: number
+          feedback_text?: string | null
+          completed_image_url?: string | null
+          created_at?: string
+        }
+      }
     }
   }
 }

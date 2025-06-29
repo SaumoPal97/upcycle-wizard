@@ -8,6 +8,7 @@ import { Progress } from '@/components/ui/progress'
 import { GuideStepView } from '@/components/Guide/GuideStepView'
 import { VoiceAssistant } from '@/components/Guide/VoiceAssistant'
 import { FeedbackModal } from '@/components/Guide/FeedbackModal'
+import { FeedbackComments } from '@/components/Project/FeedbackComments'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import { Database } from '@/types/database'
@@ -27,6 +28,7 @@ export function ProjectPage() {
   const [currentStepIndex, setCurrentStepIndex] = useState(0)
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set())
   const [showFeedback, setShowFeedback] = useState(false)
+  const [feedbackKey, setFeedbackKey] = useState(0)
 
   useEffect(() => {
     if (id) {
@@ -73,6 +75,11 @@ export function ProjectPage() {
       triggerConfetti()
       setTimeout(() => setShowFeedback(true), 1000)
     }
+  }
+
+  const handleFeedbackSubmitted = () => {
+    // Refresh the feedback comments
+    setFeedbackKey(prev => prev + 1)
   }
 
   const triggerConfetti = () => {
@@ -152,6 +159,7 @@ export function ProjectPage() {
           isOpen={showFeedback}
           onClose={() => setShowFeedback(false)}
           project={project}
+          onFeedbackSubmitted={handleFeedbackSubmitted}
         />
       </>
     )
@@ -191,7 +199,7 @@ export function ProjectPage() {
 
       {/* Main Content */}
       <div className="w-full px-4 py-8">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-4xl mx-auto space-y-8">
           <Card className="overflow-hidden shadow-lg">
             <CardContent className="p-8">
               {/* Project Title */}
@@ -270,6 +278,13 @@ export function ProjectPage() {
                 <Play className="mr-2 w-5 h-5" />
                 Start Building
               </Button>
+            </CardContent>
+          </Card>
+
+          {/* Feedback Comments Section */}
+          <Card className="shadow-lg">
+            <CardContent className="p-8">
+              <FeedbackComments key={feedbackKey} projectId={project.id} />
             </CardContent>
           </Card>
         </div>
